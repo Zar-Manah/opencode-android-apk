@@ -52,9 +52,9 @@ OpenCode breaks out of the sandbox to provide true agentic capability on Android
 - **Application Control**: Launches apps (`pc open <package>`), lists installed packages (`pc list`), reads logs, and delivers notifications (`pc notify`).
 
 ### 4. 🏭 Autonomous On-Device Android App Factory 🔥
-Turn your phone into a self-contained mobile software factory capable of designing, scaffolding, compiling, signing, installing, and visually verifying native Android applications:
+The online AI agent can design, scaffold, compile, sign, install, and visually verify native Android applications directly on the phone:
 - **Bundled Toolchain**: Pre-packaged OpenJDK 21, Android SDK (platforms `android-35`, build-tools `35.0.0` and `34.0.0`, native `d8`, `apksigner`, `aapt2`), and `gradle-oc`.
-- **Zero PC Required for Builds**: Compiles and signs APKs entirely on-device without an external computer.
+- **Zero PC Required**: The connected AI agent plans, writes the code, and drives the build tools directly on the device, without needing a desktop computer.
 - **Autonomous Deployment & Inspection Loop**: Installs the compiled APK via the local bridge (`pc install`), launches the app, captures screenshots (`pc shot`), analyzes the UI (`pc dump`), and iterates until code and interface are pixel-perfect.
 
 ### 5. 🧠 Persistent Cognitive Memory Architecture
@@ -167,7 +167,7 @@ OpenCode includes the `pc` device control CLI, accessible directly from the agen
 
 ## 🔒 Security & Privacy
 
-- **100% Local-First**: Runs directly on your device. Zero telemetry.
+- **Local Device Execution**: Runs directly on your device. Zero telemetry.
 - **No Root Required**: Operates strictly within standard unrooted Android user space.
 - **Transparent Open Source**: All source code and build recipes are publicly verifiable.
 
