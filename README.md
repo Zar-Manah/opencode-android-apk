@@ -10,7 +10,7 @@
 [![Crafted with Passion in Spain](https://img.shields.io/badge/Crafted%20with%20Passion%20in-Spain%20%F0%9F%87%AA%F0%9F%87%B8-FFD700?style=for-the-badge)](https://github.com/Zar-Manah/opencode-android-apk)
 [![License](https://img.shields.io/badge/License-GPL%20v3-yellow?style=for-the-badge)](LICENSE.md)
 
-> **An independent, unofficial project adapted for Android. It operates under the same concept and workflow as the desktop version of OpenCode, but redesigned specifically for mobile devices: it is not official and not identical to desktop, but adapted for touchscreens, virtual keyboards, and Android system workflows. The AI agent requires an active internet connection to communicate with LLM models. Crafted with passion in Spain 🇪🇸.**
+> **Unofficial OpenCode adaptation for Android: operates under the same concept as desktop but redesigned for mobile (not official, not identical). Full device control (NO ROOT REQUIRED), flawless virtual keyboard & voice dictation, zero emulation overhead, persistent cognitive memory, and on-device app factory. The AI agent requires an active internet connection. Crafted with passion in Spain 🇪🇸.**
 
 ---
 
