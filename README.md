@@ -10,13 +10,13 @@
 [![Crafted with Passion in Spain](https://img.shields.io/badge/Crafted%20with%20Passion%20in-Spain%20%F0%9F%87%AA%F0%9F%87%B8-FFD700?style=for-the-badge)](https://github.com/Zar-Manah/opencode-android-apk)
 [![License](https://img.shields.io/badge/License-GPL%20v3-yellow?style=for-the-badge)](LICENSE.md)
 
-> **Unofficial OpenCode adaptation for Android: operates under the same concept as desktop but redesigned for mobile (not official, not identical). Full device control (NO ROOT REQUIRED), flawless virtual keyboard & voice dictation, zero emulation overhead, persistent cognitive memory, and on-device app factory. The AI agent requires an active internet connection. Crafted with passion in Spain 🇪🇸.**
+> **The first fully autonomous, native AI software engineering workstation and Android app factory directly on your phone. Full device control (NO ROOT REQUIRED), flawless virtual keyboard & voice dictation, zero emulation overhead, persistent cognitive memory, and complete offline toolchains (JDK 21, Gradle, Android SDK). Crafted with passion in Spain 🇪🇸.**
 
 ---
 
 ## ⚡ The Zero-Friction Magic: Install & Code
 
-Transform your Android smartphone or tablet into a state-of-the-art AI software engineering workstation:
+Transform your Android smartphone or tablet into a state-of-the-art AI software engineering workstation in less than 60 seconds:
 
 ```
 [ Download opencode.apk ] ➔ [ Tap Install ] ➔ [ Grant 4 Permissions ] ➔ [ Code with AI ]
@@ -51,10 +51,10 @@ OpenCode breaks out of the sandbox to provide true agentic capability on Android
 - **Typing & Navigation (`pc text` & `pc key`)**: Types into active text fields and sends system navigation keys (Back, Home).
 - **Application Control**: Launches apps (`pc open <package>`), lists installed packages (`pc list`), reads logs, and delivers notifications (`pc notify`).
 
-### 4. 🏭 Autonomous On-Device Android App Factory 🔥
+### 4. 🏭 Autonomous On-Device Android App Factory 🔥 (100% Offline)
 Turn your phone into a self-contained mobile software factory capable of designing, scaffolding, compiling, signing, installing, and visually verifying native Android applications:
 - **Bundled Toolchain**: Pre-packaged OpenJDK 21, Android SDK (platforms `android-35`, build-tools `35.0.0` and `34.0.0`, native `d8`, `apksigner`, `aapt2`), and `gradle-oc`.
-- **Zero PC Required for Builds**: Compiles and signs APKs entirely on-device without an external computer.
+- **Zero PC & Zero Internet Required for Builds**: Compiles and signs APKs entirely on-device without an external computer or network connectivity.
 - **Autonomous Deployment & Inspection Loop**: Installs the compiled APK via the local bridge (`pc install`), launches the app, captures screenshots (`pc shot`), analyzes the UI (`pc dump`), and iterates until code and interface are pixel-perfect.
 
 ### 5. 🧠 Persistent Cognitive Memory Architecture
@@ -90,7 +90,7 @@ Android's aggressive memory cleaner terminates background tasks. OpenCode includ
 ├──────────────────────────┴─────────────────────────────┤
 │             Native Android User Space                  │
 │  ┌──────────────────────────────────────────────────┐  │
-│  │ OpenCode Engine (ld-musl-aarch64 :4096)           │  │
+│  │ Official OpenCode Engine (ld-musl-aarch64 :4096) │  │
 │  │ Local Cognitive Layer (memory.json, AGENTS.md)   │  │
 │  │ Device Bridge CLI (`pc`)                         │  │
 │  │ Native Toolchain (JDK 21 + SDK 35/34 + gradle-oc)│  │
