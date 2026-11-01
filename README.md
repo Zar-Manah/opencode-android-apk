@@ -90,7 +90,7 @@ Android's aggressive memory cleaner terminates background tasks. OpenCode includ
 ├──────────────────────────┴─────────────────────────────┤
 │             Native Android User Space                  │
 │  ┌──────────────────────────────────────────────────┐  │
-│  │ OpenCode Engine CLI (ld-musl-aarch64 :4096)      │  │
+│  │ OpenCode Engine (ld-musl-aarch64 :4096)           │  │
 │  │ Local Cognitive Layer (memory.json, AGENTS.md)   │  │
 │  │ Device Bridge CLI (`pc`)                         │  │
 │  │ Native Toolchain (JDK 21 + SDK 35/34 + gradle-oc)│  │
