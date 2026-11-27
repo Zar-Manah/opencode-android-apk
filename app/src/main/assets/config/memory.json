@@ -1,19 +1,32 @@
 {
-  "version": "1.0.0",
-  "identity": "OpenCode Android Native Agent",
+  "version": "2.2.14",
+  "identity": "OpenCode Android native agent",
   "environment": {
     "platform": "Android",
     "architecture": "aarch64",
-    "toolchain": "JDK 21 + Android SDK 35 + Gradle 9.8.0",
+    "home": "dynamic ($HOME/files/server-home)",
+    "workspace": "/storage/emulated/0/OpenCode",
+    "toolchain": "JDK 21 + Android SDK 35 + Gradle 9.8.0 (RAM-adaptive)",
     "bridge_port": 4399,
     "web_port": 4096
+  },
+  "architecture": {
+    "home_canonical": "The server resolves HOME dynamically from Context.getFilesDir()/server-home; ~/OpenCode symlinks to the shared workspace. Wrappers self-resolve HOME from their binary path.",
+    "factory_seed": "Version-tracked non-blocking tar extraction + idempotent per-file config updates without overwriting user memory or workspace data.",
+    "bridge_security": "Localhost HTTP bridge on 127.0.0.1:4399 enforces per-session X-Bridge-Token authentication; pc CLI uses embedded Bun fetch runtime (zero curl dependency).",
+    "screen_capture": "pc shot captures the device display via persistent official Android MediaProjection (MediaProjectionConfig default display + OnImageAvailableListener).",
+    "denies": "opencode.jsonc enforces 10 bash denies protecting / and dangerous system commands.",
+    "maintenance": "sh ~/bin/opencode-maintenance [days] [vacuum]: WAL checkpoint safe with app open; rotation and VACUUM only with app closed.",
+    "memory_safety": "memory.json is validated and system-seed keys synced on upgrade; user projects/memories are preserved and backed up to memory.json.bak.",
+    "cognition": "plugins/memory.js guards memory.json (.bak, snapshots, journal) and exposes the memory tool (get/set/del/list/validate/snapshot/journal/dream); nightly NREM dream consolidates duplicates."
   },
   "capabilities": [
     "autonomous_project_creation",
     "on_device_compilation",
     "autonomous_apk_installation",
-    "ui_visual_verification",
-    "touch_gesture_automation"
+    "app_launching",
+    "screen_capture_mediaprojection",
+    "persistent_cognitive_memory"
   ],
   "projects": {}
 }

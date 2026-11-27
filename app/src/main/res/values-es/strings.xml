@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenCode</string>
+    <string name="default_project_dir">proyecto-inicial</string>
+
+    <!-- Initial Setup Screen -->
+    <string name="setup_subtitle">Activa estos permisos para programar, compilar e instalar tus apps sin cortes.  ·  v%1$s</string>
+    <string name="setup_allow">Permitir</string>
+    <string name="setup_files_pending">Acceso a archivos (/OpenCode)</string>
+    <string name="setup_files_granted">Acceso a archivos activado</string>
+    <string name="setup_install_pending">Instalar aplicaciones compiladas</string>
+    <string name="setup_install_granted">Instalación de apps activada</string>
+    <string name="setup_battery_pending">Segundo plano sin ahorro de batería</string>
+    <string name="setup_battery_granted">Batería sin restricciones</string>
+    <string name="setup_status_all_ready">Todo listo · abriendo OpenCode…</string>
+    <string name="setup_status_summary">Archivos: %1$s  ·  Instalar: %2$s  ·  Batería: %3$s</string>
+    <string name="setup_state_ok">OK</string>
+    <string name="setup_state_pending">pendiente</string>
+    <string name="setup_state_optional">opcional</string>
+    <string name="setup_btn_enter">Entrar en OpenCode →</string>
+    <string name="setup_btn_grant_required">Concede Archivos e Instalación para empezar</string>
+
+    <!-- Main Activity & Splash -->
+    <string name="tap_complete_setup">Pulsa aquí para completar los permisos iniciales →</string>
+    <string name="unsupported_abi_title">Arquitectura de CPU no compatible</string>
+    <string name="unsupported_abi_msg">OpenCode Android requiere un procesador ARM de 64 bits (arm64-v8a). ABIs detectadas: %1$s</string>
+
+    <!-- Service & Screen Capture -->
+    <string name="boot_starting">Activando, espera un momento…</string>
+    <string name="boot_preparing_engine">Activando, espera un momento…</string>
+    <string name="boot_configuring_wrappers">Activando, espera un momento…</string>
+    <string name="boot_engine_ready_setup">Listo · termina los permisos para abrir</string>
+    <string name="boot_starting_server">Activando, espera un momento…</string>
+    <string name="boot_downloading_engine">Descargando %1$dMB…</string>
+    <string name="boot_downloading_engine_total">Descargando %1$dMB / %2$dMB…</string>
+    <string name="boot_active">Activando, espera un momento…</string>
+    <string name="boot_active_24_7">Activo 24/7</string>
+    <string name="boot_startup_error">Error al iniciar: %1$s</string>
+    <string name="boot_engine_launch_failed">Error al iniciar: %1$s</string>
+    <string name="boot_toolchain_error">Error de configuración: %1$s</string>
+    <string name="boot_install_tc">Instalando herramientas (1/3)…</string>
+    <string name="boot_install_sdk">Instalando SDK de Android (2/3)…</string>
+    <string name="boot_install_gradle">Preparando caché offline (3/3)…</string>
+    <string name="boot_verify_tc">Verificando entorno…</string>
+    <string name="notif_running_local">En segundo plano</string>
+    <string name="notif_running_24_7">Activo 24/7 (WakeLock ON)</string>
+    <string name="notif_action_24_7_on">24/7: ON</string>
+    <string name="notif_action_24_7_off">24/7: OFF</string>
+    <string name="notif_action_exit">Salir</string>
+    <string name="cap_channel_name">Captura de pantalla</string>
+    <string name="cap_notif_text">Captura de pantalla activa para pc shot</string>
+</resources>

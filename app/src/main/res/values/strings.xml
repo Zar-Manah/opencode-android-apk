@@ -1,8 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">OpenCode</string>
-    <string name="server_running">OpenCode</string>
-    <string name="notification_action_exit">Exit</string>
-    <string name="notification_action_wake_lock">24/7</string>
-    <string name="notification_action_server">Server</string>
+    <string name="default_project_dir">initial-project</string>
+
+    <!-- Initial Setup Screen -->
+    <string name="setup_subtitle">Enable these permissions to code, compile &amp; install apps without interruptions.  ·  v%1$s</string>
+    <string name="setup_allow">Allow</string>
+    <string name="setup_files_pending">Storage access (/OpenCode)</string>
+    <string name="setup_files_granted">Storage access granted</string>
+    <string name="setup_install_pending">Install built apps</string>
+    <string name="setup_install_granted">App installs enabled</string>
+    <string name="setup_battery_pending">Unrestricted background battery</string>
+    <string name="setup_battery_granted">Unrestricted battery enabled</string>
+    <string name="setup_status_all_ready">All set · opening OpenCode…</string>
+    <string name="setup_status_summary">Storage: %1$s  ·  Installs: %2$s  ·  Battery: %3$s</string>
+    <string name="setup_state_ok">OK</string>
+    <string name="setup_state_pending">pending</string>
+    <string name="setup_state_optional">optional</string>
+    <string name="setup_btn_enter">Enter OpenCode →</string>
+    <string name="setup_btn_grant_required">Grant Storage &amp; Installs to start</string>
+
+    <!-- Main Activity & Splash -->
+    <string name="tap_complete_setup">Tap here to complete initial permissions Setup →</string>
+    <string name="unsupported_abi_title">Unsupported CPU Architecture</string>
+    <string name="unsupported_abi_msg">OpenCode Android requires a 64-bit ARM processor (arm64-v8a). Detected ABIs: %1$s</string>
+
+    <!-- Service & Screen Capture -->
+    <string name="boot_starting">Activating, wait a moment…</string>
+    <string name="boot_preparing_engine">Activating, wait a moment…</string>
+    <string name="boot_configuring_wrappers">Activating, wait a moment…</string>
+    <string name="boot_engine_ready_setup">Ready · finish setup to launch</string>
+    <string name="boot_starting_server">Activating, wait a moment…</string>
+    <string name="boot_downloading_engine">Downloading %1$dMB…</string>
+    <string name="boot_downloading_engine_total">Downloading %1$dMB / %2$dMB…</string>
+    <string name="boot_active">Activating, wait a moment…</string>
+    <string name="boot_active_24_7">Active 24/7</string>
+    <string name="boot_startup_error">Startup error: %1$s</string>
+    <string name="boot_engine_launch_failed">Launch failed: %1$s</string>
+    <string name="boot_toolchain_error">Setup error: %1$s</string>
+    <string name="boot_install_tc">Installing tools (1/3)…</string>
+    <string name="boot_install_sdk">Installing Android SDK (2/3)…</string>
+    <string name="boot_install_gradle">Preparing offline cache (3/3)…</string>
+    <string name="boot_verify_tc">Verifying environment…</string>
+    <string name="notif_running_local">Running in background</string>
+    <string name="notif_running_24_7">Active 24/7 (WakeLock ON)</string>
+    <string name="notif_action_24_7_on">24/7: ON</string>
+    <string name="notif_action_24_7_off">24/7: OFF</string>
+    <string name="notif_action_exit">Exit</string>
+    <string name="cap_channel_name">Screen Capture</string>
+    <string name="cap_notif_text">Screen capture active for pc shot</string>
 </resources>

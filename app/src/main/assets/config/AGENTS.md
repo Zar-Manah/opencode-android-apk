@@ -1,48 +1,43 @@
 # OpenCode — Autonomous AI Coding Agent for Android
 
-OpenCode is an autonomous on-device AI coding agent running natively in Android user space.
+OpenCode is an autonomous on-device AI coding agent running natively in Android user space (`arm64-v8a`).
 
 ## Device Environment & Architecture
 
 - **Operating System**: Android (Linux kernel + Android runtime)
-- **Home Directory**: `$HOME` (`/data/user/0/a.opencode/files/server-home`)
-- **Workspace Root**: `~/OpenCode` (symlinked directly to `/storage/emulated/0/OpenCode`)
+- **Home Directory**: `$HOME` (resolved dynamically to the app's private `files/server-home`)
+- **Workspace Root**: `$HOME/OpenCode` (symlink to `/storage/emulated/0/OpenCode`)
 - **Native Toolchain**:
-  - JDK 21: `$HOME/toolchain/usr/lib/jvm/java-21-openjdk` (wrappers in `~/bin/java`, `~/toolchain/bin/java`)
-  - Android SDK: `$HOME/android-sdk` (`ANDROID_HOME` & `ANDROID_SDK_ROOT` pre-configured in environment)
+  - JDK 21: `$HOME/toolchain/usr/lib/jvm/java-21-openjdk` (wrappers in `$HOME/bin` and `$HOME/toolchain/bin`)
+  - Android SDK: `$HOME/android-sdk` (`ANDROID_HOME` & `ANDROID_SDK_ROOT` pre-configured)
   - SDK Platforms: `android-35`
-  - Build Tools: `35.0.0` and `34.0.0` (with native `d8`, `apksigner`, `aapt2`)
-  - Gradle Runner: `gradle-oc` (in PATH, mksh-safe wrapper for on-device compilation)
-  - Native utilities: `git`, `aapt2`, `apksigner`, `iconos` in `$HOME/bin`, `$HOME/toolchain/bin`, and PATH
-  - Global Gradle config: `~/.gradle/gradle.properties` includes `android.suppressUnsupportedCompileSdk=35`
-- **Device Control Bridge**:
-  - Local HTTP bridge active at `http://127.0.0.1:4399` via the `pc` CLI tool.
-  - Commands available to the agent:
-    - `pc ping`: Check bridge health and status
-    - `pc shot [path.png]`: Capture current screen framebuffer to PNG
-    - `pc dump`: Dump active window accessibility view hierarchy XML
-    - `pc tap <x> <y>`: Send touchscreen tap event
-    - `pc swipe <x1> <y1> <x2> <y2> [duration_ms]`: Perform gesture swipe/scroll
-    - `pc text <string>`: Type text into active input field
-    - `pc key <BACK|HOME>`: Trigger navigation keys
-    - `pc open <package_name>`: Launch application
-    - `pc install <path_to_apk>`: Autonomously install APK on device
-    - `pc shell <command>`: Execute shell commands with application permissions
-    - `pc list [filter]`: Query installed packages
-    - `pc notify <message> [title]`: Post system notification
+  - Build Tools: `35.0.0` and `34.0.0` (with `d8.jar`, `apksigner.jar`, and native ARM `aapt2`)
+  - Gradle Runner: `gradle-oc` (RAM-aware mksh-safe wrapper scaling `-Xmx` to device memory)
+  - Native utilities: `git`, `adb`, `aapt2`, `apksigner`, `d8`, `rg`, `iconos` in `$HOME/bin`, `$HOME/toolchain/bin`, and `PATH`
+  - Global Gradle config: `$HOME/.gradle/gradle.properties` includes `android.suppressUnsupportedCompileSdk=35`
+- **Local Android Bridge (`http://127.0.0.1:4399` via `pc`)**:
+  - `pc ping`: Check local bridge readiness
+  - `pc shot [path.png]`: Capture current device screen to PNG via Android `MediaProjection`
+  - `pc open <package_name|url>`: Launch application or URL
+  - `pc install <path_to_apk>`: Launch system installer session (`PackageInstaller`) for compiled APKs
+  - `pc shell <command>`: Execute shell commands within the app sandbox
+  - `pc list [filter]`: Query installed packages
+  - `pc notify <message> [title]`: Post system notification
+- **Launch & Visual Verification**:
+  - Launch with `pc open <package_name>` and inspect UI visually via `pc shot /storage/emulated/0/OpenCode/tmp/app.png`.
+  - Inspect app logs via `pc shell "logcat -d | grep <tag>"`.
 
-## Autonomous Application Development Workflow
+## File Hygiene (permanent rule)
 
-1. **Project Creation**: Create new native Android projects inside `~/OpenCode/<ProjectName>/` (or `/storage/emulated/0/OpenCode/<ProjectName>/`).
-2. **Build & Package**: Compile on-device with `gradle-oc :app:clean assembleDebug`.
-3. **On-Device Installation**: Install the compiled APK directly onto this device using `pc install app/build/outputs/apk/debug/*-debug.apk`.
-4. **Launch & Verification**:
-   - Launch with `pc open <package_name>`.
-   - Autonomously verify the application UI by capturing screenshots (`pc shot /sdcard/Download/<name>.png`) and reading view hierarchy (`pc dump`).
-   - Interact with the app via `pc tap`, `pc swipe`, and `pc text`.
-   - Inspect runtime logs via `pc shell "logcat -d | grep <tag>"`.
+- The app cache (`cache/opencode`) holds disposable data only; Android can wipe it at any time.
+- All work scratch lives in `<Project>/tmp/` (or `~/OpenCode/tmp/`). Never under the app cache.
+- Shared storage (`/storage/emulated/0`) is FUSE: no symlinks (`ln -s` fails there) and no exec bit — run workspace scripts as `sh script.sh`, never `./script.sh`.
 
 ## Local Persistent Memory
 
-OpenCode maintains its persistent memory locally on this device in `~/.config/opencode/memory/memory.json`.
-Update memory with verified project capabilities, device configuration, and learned patterns across sessions.
+OpenCode maintains persistent memory locally in `$HOME/.config/opencode/memory/memory.json` (with `.bak` backup and append-only `journal.jsonl`), managed by `plugins/memory.js`.
+
+## Maintenance
+
+Run `sh ~/bin/opencode-maintenance [days] [vacuum]` for WAL checkpoint (safe with app open), `tool-output` pruning, cache pruning, and log rotation (rotation and `vacuum` only with the app closed).
+Verify the harness any time with: `java -version`, `gradle-oc --version`, `iconos`, `pc ping`.

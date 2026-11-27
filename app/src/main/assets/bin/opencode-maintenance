@@ -1,0 +1,102 @@
+#!/system/bin/sh
+# opencode-maintenance: upkeep for the on-device harness (safe defaults).
+# Usage: sh ~/bin/opencode-maintenance [days] [vacuum]
+#   days   : retention for tool-output/cache pruning (default 30)
+#   vacuum : only with the app CLOSED, compacts opencode.db ("vacuum" to enable)
+SELF_DIR=$(cd "$(dirname "$0")" && pwd)
+if [ -d "$SELF_DIR/../toolchain/usr" ]; then
+  export HOME=$(cd "$SELF_DIR/.." && pwd)
+elif [ -z "${HOME:-}" ] || [ ! -d "$HOME/toolchain/usr" ]; then
+  export HOME="/data/user/0/a.opencode/files/server-home"
+fi
+DAYS="${1:-30}"
+VAC="${2:-}"
+FILES_DIR=$(cd "$HOME/.." && pwd)
+APP_ROOT=$(cd "$FILES_DIR/.." && pwd)
+DATA="$HOME/.local/share/opencode"
+DB="$DATA/opencode.db"
+LOG="$FILES_DIR/server.log"
+CACHE_DIR="$APP_ROOT/cache/opencode"
+
+server_up() {
+  if command -v curl >/dev/null 2>&1; then
+    curl -s -o /dev/null -m 2 "http://127.0.0.1:4096/" 2>/dev/null
+  else
+    return 1
+  fi
+}
+
+echo "== opencode-maintenance (days=$DAYS) =="
+
+# 1. WAL checkpoint: safe with the app open.
+if [ -f "$DB" ]; then
+  if command -v sqlite3 >/dev/null 2>&1; then
+    sqlite3 "$DB" "PRAGMA wal_checkpoint(TRUNCATE);" 2>&1 | head -1
+  elif [ -x "$FILES_DIR/server/opencode" ]; then
+    S="$FILES_DIR/server"
+    MDB="$DB" LD_LIBRARY_PATH="$S" BUN_BE_BUN=1 "$S/ld-musl-aarch64.so.1" "$S/opencode" -e \
+      'const {Database}=require("bun:sqlite");const db=new Database(process.env.MDB);db.run("PRAGMA wal_checkpoint(TRUNCATE)");console.log("checkpoint ok");db.close()' 2>&1 | head -3
+  else
+    echo "checkpoint: skipped (no sqlite3, no embedded runtime)"
+  fi
+else
+  echo "checkpoint: skipped (no db)"
+fi
+
+# 2. Prune tool-output: older than DAYS, plus >5MB files older than 3 days.
+TO="$DATA/tool-output"
+if [ -d "$TO" ]; then
+  before=$(du -sh "$TO" 2>/dev/null | cut -f1)
+  find "$TO" -mindepth 1 -type f -mtime +"$DAYS" -delete 2>/dev/null
+  find "$TO" -mindepth 1 -type f -size +5M -mtime +3 -delete 2>/dev/null
+  find "$TO" -mindepth 1 -type d -empty -delete 2>/dev/null
+  after=$(du -sh "$TO" 2>/dev/null | cut -f1)
+  echo "tool-output: $before -> $after"
+else
+  echo "tool-output: absent"
+fi
+
+# 3. Report (and prune) disposable app cache.
+if [ -d "$CACHE_DIR" ]; then
+  n=$(find "$CACHE_DIR" -mindepth 1 2>/dev/null | wc -l | tr -d ' ')
+  sz=$(du -sh "$CACHE_DIR" 2>/dev/null | cut -f1)
+  echo "cache/opencode: $n entries, $sz"
+  find "$CACHE_DIR" -mindepth 1 -mtime +"$DAYS" -delete 2>/dev/null
+  n2=$(find "$CACHE_DIR" -mindepth 1 2>/dev/null | wc -l | tr -d ' ')
+  echo "cache/opencode after prune: $n2 entries"
+else
+  echo "cache/opencode: absent"
+fi
+
+# 4. Log rotation x3 — only with the app closed.
+if server_up; then
+  echo "server.log: rotation skipped (app open)"
+else
+  for i in 2 1; do
+    [ -f "$LOG.$i" ] && mv -f "$LOG.$i" "$LOG.$((i + 1))" 2>/dev/null
+  done
+  [ -f "$LOG" ] && cp -f "$LOG" "$LOG.1" 2>/dev/null && : > "$LOG" 2>/dev/null
+  echo "server.log: rotated"
+fi
+
+# 5. VACUUM — only with explicit arg AND the app closed.
+if [ "$VAC" = "vacuum" ]; then
+  if server_up; then
+    echo "VACUUM refused: close the app first"
+    exit 1
+  fi
+  if [ ! -f "$DB" ]; then
+    echo "VACUUM skipped: no db"
+  elif command -v sqlite3 >/dev/null 2>&1; then
+    sqlite3 "$DB" "VACUUM;" 2>&1 | head -3
+    echo "VACUUM done"
+  elif [ -x "$FILES_DIR/server/opencode" ]; then
+    S="$FILES_DIR/server"
+    MDB="$DB" LD_LIBRARY_PATH="$S" BUN_BE_BUN=1 "$S/ld-musl-aarch64.so.1" "$S/opencode" -e \
+      'const {Database}=require("bun:sqlite");const db=new Database(process.env.MDB);db.run("VACUUM");console.log("VACUUM done");db.close()' 2>&1 | head -3
+  else
+    echo "VACUUM skipped: no sqlite3, no embedded runtime"
+    exit 1
+  fi
+fi
+echo "done"

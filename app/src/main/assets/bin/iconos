@@ -1,7 +1,18 @@
 #!/system/bin/sh
-# iconos: genera iconos adaptativos con el JDK del telefono (sin python ni pip).
-if [ -z "${HOME:-}" ]; then export HOME="/data/user/0/a.opencode/files/server-home"; fi
-H=$(dirname "$0"); H=$(cd "$H/.." && pwd)
-U="$H/usr"
+# iconos: adaptive icon generator using on-device JDK.
+SELF_DIR=$(cd "$(dirname "$0")" && pwd)
+if [ -d "$SELF_DIR/../toolchain/usr" ]; then
+  H=$(cd "$SELF_DIR/.." && pwd)
+elif [ -d "$SELF_DIR/../usr" ]; then
+  H=$(cd "$SELF_DIR/../.." && pwd)
+elif [ -n "${HOME:-}" ] && [ -d "$HOME/toolchain/usr" ]; then
+  H="$HOME"
+else
+  H="/data/user/0/a.opencode/files/server-home"
+fi
+export HOME="$H"
+U="$H/toolchain/usr"
+JAR="$SELF_DIR/iconos.jar"
+[ -f "$JAR" ] || JAR="$H/bin/iconos.jar"
 export LD_LIBRARY_PATH="$U/lib"
-exec "$U/lib/jvm/java-21-openjdk/bin/java" -Djava.awt.headless=true -cp "$H/bin/iconos.jar" Iconos "$@"
+exec "$U/lib/jvm/java-21-openjdk/bin/java" -Djava.awt.headless=true -cp "$JAR" Iconos "$@"

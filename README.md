@@ -10,22 +10,22 @@
 [![Crafted with Passion in Spain](https://img.shields.io/badge/Crafted%20with%20Passion%20in-Spain%20%F0%9F%87%AA%F0%9F%87%B8-FFD700?style=for-the-badge)](https://github.com/Zar-Manah/opencode-android-apk)
 [![License](https://img.shields.io/badge/License-GPL%20v3-yellow?style=for-the-badge)](LICENSE.md)
 
-> **The first fully autonomous, native AI software engineering workstation and Android app factory directly on your phone. Full device control (NO ROOT REQUIRED), flawless virtual keyboard & voice dictation, zero emulation overhead, persistent cognitive memory, and complete toolchains (JDK 21, Gradle, Android SDK). Crafted with passion in Spain 🇪🇸.**
+> **The first fully autonomous, native AI software engineering workstation and Android app factory directly on your phone. Full device control (NO ROOT REQUIRED), flawless virtual keyboard & voice dictation, zero emulation overhead, persistent cognitive memory, and complete offline toolchains (JDK 21, Gradle, Android SDK). Crafted with passion in Spain 🇪🇸.**
 
 ---
 
 ## ⚡ The Zero-Friction Magic: Install & Code
 
-Transform your Android smartphone or tablet into a state-of-the-art AI software engineering workstation:
+Transform your Android smartphone or tablet into a state-of-the-art AI software engineering workstation in less than 60 seconds:
 
 ```
-[ Download opencode.apk ] ➔ [ Tap Install ] ➔ [ Grant 4 Permissions ] ➔ [ Code with AI ]
+[ Download opencode.apk ] ➔ [ Tap Install ] ➔ [ Allow Permissions ] ➔ [ Code with AI ]
 ```
 
 1. **Download `opencode.apk`** from [GitHub Releases](https://github.com/Zar-Manah/opencode-android-apk/releases/latest).
 2. **Install** the APK on your Android device (Android 8.0+ / `arm64-v8a`).
-3. **Open the app** and follow the streamlined 4-step setup.
-4. **You're ready!** OpenCode launches immediately into the native interface. Works out of the box with free OpenCode models as well as custom API keys.
+3. **Open the app** and grant **Storage access** and **Install built apps** (plus optional **Unrestricted background battery** — no Accessibility or Restricted Settings steps needed).
+4. **You're ready!** OpenCode automatically creates your initial project workspace and opens straight into Chat (in English or Spanish based on your device language). Works out of the box with free OpenCode models as well as custom API keys.
 
 ---
 
@@ -46,15 +46,15 @@ Anyone who has tried coding or running AI agents on Android knows the frustratin
 
 ### 3. 📱 Full Device Interaction Without Root (NO ROOT REQUIRED)
 OpenCode breaks out of the sandbox to provide true agentic capability on Android up to the theoretical limit of unrooted operating systems:
-- **Eyes (`pc shot` & `pc dump`)**: Real-time ultra-fast screenshot analysis (<0.3s) and complete accessibility view hierarchy XML inspection.
-- **Hands (`pc tap` & `pc swipe`)**: Taps UI buttons, navigates menus, and scrolls through applications.
+- **Eyes (`pc shot` & `pc dump`)**: Real-time screenshot capture via native Android MediaProjection (`pc shot`, with persistent permission on Android 14+) and UI hierarchy XML inspection (`pc dump`) via self-contained local Wireless Debugging.
+- **Hands (`pc tap` & `pc swipe`)**: Taps UI buttons, navigates menus, and scrolls through applications via optional local Wireless Debugging (`pc control`, no Accessibility Service required).
 - **Typing & Navigation (`pc text` & `pc key`)**: Types into active text fields and sends system navigation keys (Back, Home).
 - **Application Control**: Launches apps (`pc open <package>`), lists installed packages (`pc list`), reads logs, and delivers notifications (`pc notify`).
 
-### 4. 🏭 Autonomous On-Device Android App Factory 🔥
+### 4. 🏭 Autonomous On-Device Android App Factory 🔥 (100% Offline)
 Turn your phone into a self-contained mobile software factory capable of designing, scaffolding, compiling, signing, installing, and visually verifying native Android applications:
 - **Bundled Toolchain**: Pre-packaged OpenJDK 21, Android SDK (platforms `android-35`, build-tools `35.0.0` and `34.0.0`, native `d8`, `apksigner`, `aapt2`), and `gradle-oc`.
-- **Zero PC Required for Builds**: Compiles and signs APKs entirely on-device without an external computer.
+- **Zero PC & Zero Internet Required for Builds**: Compiles and signs APKs entirely on-device without an external computer or network connectivity.
 - **Autonomous Deployment & Inspection Loop**: Installs the compiled APK via the local bridge (`pc install`), launches the app, captures screenshots (`pc shot`), analyzes the UI (`pc dump`), and iterates until code and interface are pixel-perfect.
 
 ### 5. 🧠 Persistent Cognitive Memory Architecture
@@ -85,12 +85,12 @@ Android's aggressive memory cleaner terminates background tasks. OpenCode includ
 ┌────────────────────────────────────────────────────────┐
 │             Android System (Linux Kernel)              │
 ├──────────────────────────┬─────────────────────────────┤
-│   OpenCode Host App      │   Native Accessibility      │
-│   (a.opencode / UI)      │   Bridge Server (:4399)     │
+│   OpenCode Host App      │   Device Bridge Server      │
+│   (a.opencode / UI)      │   (:4399 / MediaProjection) │
 ├──────────────────────────┴─────────────────────────────┤
 │             Native Android User Space                  │
 │  ┌──────────────────────────────────────────────────┐  │
-│  │ OpenCode Engine (ld-musl-aarch64 :4096)           │  │
+│  │ Official OpenCode Engine (ld-musl-aarch64 :4096) │  │
 │  │ Local Cognitive Layer (memory.json, AGENTS.md)   │  │
 │  │ Device Bridge CLI (`pc`)                         │  │
 │  │ Native Toolchain (JDK 21 + SDK 35/34 + gradle-oc)│  │
@@ -103,34 +103,29 @@ Android's aggressive memory cleaner terminates background tasks. OpenCode includ
 
 ## 🚀 Guided Initial Setup
 
-When launching OpenCode for the first time, a streamlined setup screen guides you through the 4 required permissions:
+When launching OpenCode for the first time, a streamlined setup screen guides you through the required permissions (no Accessibility Service or Restricted Settings steps required):
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                       OpenCode                          │
-│ To grant OpenCode full device control, follow steps:    │
+│ Storage access (/OpenCode)                  [  Allow  ] │
+│ Install built apps                          [  Allow  ] │
+│ Unrestricted background battery (optional)  [  Allow  ] │
 │                                                         │
-│ [OpenCode]       Downloaded apps → OpenCode             │
-│ [App info]       Allow restricted settings (3 dots ⋮)   │
-│ [Allow files]    Manage all files                       │
-│ [Allow installs] Install unknown apps                   │
-│                                                         │
-│ Bridge: connected  ·  Files: ok  ·  Installs: ok        │
+│ Storage: OK  ·  Installs: OK  ·  Battery: OK            │
 └─────────────────────────────────────────────────────────┘
 ```
 
-1. **`OpenCode` (`Downloaded apps → OpenCode`)**:
-   Tap the button, select **Downloaded apps**, and select **OpenCode**. *(On Android 13+, tap through the restricted settings prompt if displayed).*
-2. **`App info` (`Restricted settings`)**:
-   Tap the button, tap the **3 dots (⋮)** in the top right corner, and select **'Allow restricted settings'**. Return to step 1 and enable OpenCode.
-3. **`Allow files` (`Manage all files`)**:
-   Tap the button to grant permission to manage all files. This allows OpenCode to read and write your workspace at `/storage/emulated/0/OpenCode`.
-4. **`Allow installs` (`Install unknown apps`)**:
-   Tap the button to allow installing apps created by OpenCode.
+1. **`Storage access (/OpenCode)`**:
+   Tap **Allow** to grant permission to manage all files. This allows OpenCode to read and write your workspace at `/storage/emulated/0/OpenCode`.
+2. **`Install built apps`**:
+   Tap **Allow** to allow installing apps created by OpenCode.
+3. **`Unrestricted background battery`** *(optional, recommended)*:
+   Tap **Allow** so long background builds and tasks are not paused by battery saver.
 
-Once all four are granted, the status updates to:
-`Bridge: connected · Files: ok · Installs: ok`
-and OpenCode launches automatically!
+Once Storage and Installs are granted, the engine starts in the background and OpenCode launches automatically (or tap **Enter OpenCode →** to continue right away), auto-creating your initial project workspace (`initial-project` / `proyecto-inicial`) and opening straight into Chat!
+
+> **Optional UI automation (`pc control`):** Need UI hierarchy XML dumps (`pc dump`) or touch/typing automation (`pc tap`, `pc swipe`, `pc text`, `pc key`)? Run `pc control` inside OpenCode anytime for guided Wireless Debugging setup. Screen capture (`pc shot`), app launches (`pc open`), APK installs (`pc install`), shell (`pc shell`), and notifications (`pc notify`) work out of the box without it.
 
 ---
 
@@ -141,8 +136,9 @@ OpenCode includes the `pc` device control CLI, accessible directly from the agen
 | Command | Description |
 |---|---|
 | `pc ping` | Check device bridge status and health |
-| `pc shot [path.png]` | Capture high-speed screenshot of current screen |
-| `pc dump` | Dump active window accessibility view hierarchy XML |
+| `pc shot [path.png]` | Capture screen to PNG via native Android MediaProjection |
+| `pc dump` | Dump active window UI hierarchy XML (via `pc control` / local ADB) |
+| `pc control` | Open guided Wireless Debugging setup UI (optional) |
 | `pc tap <x> <y>` | Send touch tap to screen coordinate |
 | `pc swipe <x1> <y1> <x2> <y2> [ms]` | Send smooth swipe gesture across screen |
 | `pc text <string>` | Type text into the active input field |
@@ -175,7 +171,7 @@ OpenCode includes the `pc` device control CLI, accessible directly from the agen
 
 ## 🇪🇸 Crafted with Passion in Spain
 
-**OpenCode APK for Android** is conceived, engineered, and published from Spain 🇪🇸 by **Zar-Manah**.
+**OpenCode APK for Android** is conceived, engineered, and published from Madrid, Spain 🇪🇸 by **Zar-Manah**.
 
 Our vision is to break the hardware boundary of modern software engineering: empowering developers, students, researchers, and creators worldwide to carry a complete, self-sustaining AI software engineering powerhouse directly in their pocket.
 

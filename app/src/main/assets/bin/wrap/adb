@@ -1,0 +1,20 @@
+#!/system/bin/sh
+# adb: standalone dynamic-home wrapper using isolated adb-libs (Abseil 20260817).
+SELF_DIR=$(cd "$(dirname "$0")" && pwd)
+if [ -d "$SELF_DIR/../toolchain/usr" ]; then
+  export HOME=$(cd "$SELF_DIR/.." && pwd)
+elif [ -d "$SELF_DIR/../usr" ]; then
+  export HOME=$(cd "$SELF_DIR/../.." && pwd)
+elif [ -d "$SELF_DIR/../../../toolchain/usr" ]; then
+  export HOME=$(cd "$SELF_DIR/../../.." && pwd)
+elif [ -z "${HOME:-}" ] || [ ! -d "$HOME/toolchain/usr" ]; then
+  export HOME="/data/user/0/a.opencode/files/server-home"
+fi
+U="$HOME/toolchain/usr"
+mkdir -p "$HOME/tmp" "$HOME/.android" 2>/dev/null
+export ANDROID_USER_HOME="$HOME/.android"
+export TMPDIR="$HOME/tmp"
+export ANDROID_ADB_SERVER_PORT="${ANDROID_ADB_SERVER_PORT:-15037}"
+BIN="$U/bin/adb.real"
+[ -f "$BIN" ] || BIN="$U/bin/adb"
+LD_LIBRARY_PATH="$U/lib/adb-libs" exec "$BIN" "$@"

@@ -1,9 +1,14 @@
 package com.opencode.android;
 
+import android.system.Os;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,7 +17,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
-/** OpenCode: descarga la última versión oficial (linux-arm64-musl) en el primer arranque. */
+/** OpenCode: Downloads latest official release (linux-arm64-musl) if embedded engine is missing. */
 final class EngineFetcher {
 
     private static final String TAG = "EngineFetcher";
@@ -22,35 +27,37 @@ final class EngineFetcher {
     interface Progress { void on(long done, long total); }
 
     static String latestTag() throws Exception {
-        String json = get(API, null);
-        int i = json.indexOf("\"tag_name\"");
-        int a = json.indexOf('"', i + 11) + 1;
-        int b = json.indexOf('"', a);
-        return json.substring(a, b);
+        JSONObject root = new JSONObject(get(API));
+        return root.getString("tag_name");
     }
 
     static String assetUrl() throws Exception {
-        String json = get(API, null);
-        String key = "\"name\":\"" + WANT_ASSET + "\"";
-        int i = json.indexOf(key);
-        if (i < 0) throw new RuntimeException("asset missing");
-        int u = json.indexOf("\"browser_download_url\":\"", i);
-        int a = u + 24;
-        int e = json.indexOf('"', a);
-        return json.substring(a, e).replace("\\/", "/");
+        JSONObject root = new JSONObject(get(API));
+        JSONArray assets = root.optJSONArray("assets");
+        if (assets != null) {
+            for (int i = 0; i < assets.length(); i++) {
+                JSONObject a = assets.getJSONObject(i);
+                if (WANT_ASSET.equals(a.optString("name"))) {
+                    return a.getString("browser_download_url");
+                }
+            }
+        }
+        throw new RuntimeException("asset missing: " + WANT_ASSET);
     }
 
     static void fetch(File dest, Progress progress) throws Exception {
         String url = assetUrl();
         Log.i(TAG, "downloading " + url);
         File tmp = new File(dest.getParent(), "opencode.tar.gz.tmp");
-        download(url, tmp, progress);
-        extractOpencode(tmp, dest);
-        tmp.delete();
-        try { Runtime.getRuntime().exec(new String[]{"chmod", "755", dest.getAbsolutePath()}).waitFor(); }
-        catch (Exception ignored) {}
+        try {
+            download(url, tmp, progress);
+            extractOpencode(tmp, dest);
+        } finally {
+            if (tmp.exists()) tmp.delete();
+        }
+        try { Os.chmod(dest.getAbsolutePath(), 0755); } catch (Exception ignored) {}
         if (!dest.canExecute()) {
-            try { android.system.Os.chmod(dest.getAbsolutePath(), 0755); }
+            try { Runtime.getRuntime().exec(new String[]{"chmod", "755", dest.getAbsolutePath()}).waitFor(); }
             catch (Exception ignored) {}
         }
     }
@@ -61,8 +68,10 @@ final class EngineFetcher {
         c.setConnectTimeout(15000);
         c.setReadTimeout(60000);
         c.connect();
-        if (c.getResponseCode() / 100 != 2 && c.getResponseCode() != 302) {
-            throw new RuntimeException("http " + c.getResponseCode());
+        int code = c.getResponseCode();
+        if (code / 100 != 2 && code != 302) {
+            c.disconnect();
+            throw new RuntimeException("http " + code);
         }
         long total = c.getContentLengthLong();
         try (InputStream in = c.getInputStream();
@@ -86,7 +95,7 @@ final class EngineFetcher {
     }
 
     private static void extractOpencode(File tarGz, File dest) throws Exception {
-        try (InputStream f = new java.io.FileInputStream(tarGz);
+        try (InputStream f = new FileInputStream(tarGz);
              GZIPInputStream gz = new GZIPInputStream(f)) {
             byte[] head = new byte[512];
             while (true) {
@@ -146,7 +155,7 @@ final class EngineFetcher {
         }
     }
 
-    private static String get(String url, Progress unused) throws Exception {
+    private static String get(String url) throws Exception {
         HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
         c.setConnectTimeout(15000);
         c.setReadTimeout(30000);

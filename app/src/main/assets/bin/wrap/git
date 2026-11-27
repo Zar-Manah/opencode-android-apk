@@ -1,7 +1,16 @@
 #!/system/bin/sh
-# git: standalone wrapper (no global LD_LIBRARY_PATH leak).
-if [ -z "${HOME:-}" ]; then export HOME="/data/user/0/a.opencode/files/server-home"; fi
+# git: standalone dynamic-home wrapper with TLS cert path.
+SELF_DIR=$(cd "$(dirname "$0")" && pwd)
+if [ -d "$SELF_DIR/../toolchain/usr" ]; then
+  export HOME=$(cd "$SELF_DIR/.." && pwd)
+elif [ -d "$SELF_DIR/../usr" ]; then
+  export HOME=$(cd "$SELF_DIR/../.." && pwd)
+elif [ -z "${HOME:-}" ] || [ ! -d "$HOME/toolchain/usr" ]; then
+  export HOME="/data/user/0/a.opencode/files/server-home"
+fi
 U="$HOME/toolchain/usr"
+[ -f "$U/etc/tls/cert.pem" ] && export SSL_CERT_FILE="${SSL_CERT_FILE:-$U/etc/tls/cert.pem}"
+[ -f "$U/etc/tls/cert.pem" ] && export GIT_SSL_CAINFO="${GIT_SSL_CAINFO:-$U/etc/tls/cert.pem}"
 BIN="$U/bin/git.real"
-if [ ! -f "$BIN" ]; then BIN="$U/bin/git"; fi
+[ -f "$BIN" ] || BIN="$U/bin/git"
 LD_LIBRARY_PATH="$U/lib" exec "$BIN" "$@"

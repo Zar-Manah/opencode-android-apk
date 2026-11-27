@@ -1,8 +1,15 @@
 #!/system/bin/sh
-# javac: standalone wrapper (no global LD_LIBRARY_PATH leak).
-if [ -z "${HOME:-}" ]; then export HOME="/data/user/0/a.opencode/files/server-home"; fi
+# javac: standalone dynamic-home wrapper.
+SELF_DIR=$(cd "$(dirname "$0")" && pwd)
+if [ -d "$SELF_DIR/../toolchain/usr" ]; then
+  export HOME=$(cd "$SELF_DIR/.." && pwd)
+elif [ -d "$SELF_DIR/../usr" ]; then
+  export HOME=$(cd "$SELF_DIR/../.." && pwd)
+elif [ -z "${HOME:-}" ] || [ ! -d "$HOME/toolchain/usr" ]; then
+  export HOME="/data/user/0/a.opencode/files/server-home"
+fi
 U="$HOME/toolchain/usr"
 export JAVA_HOME="$U/lib/jvm/java-21-openjdk"
-BIN="$U/lib/jvm/java-21-openjdk/bin/javac.real"
-if [ ! -f "$BIN" ]; then BIN="$U/lib/jvm/java-21-openjdk/bin/javac"; fi
+BIN="$JAVA_HOME/bin/javac.real"
+[ -f "$BIN" ] || BIN="$JAVA_HOME/bin/javac"
 LD_LIBRARY_PATH="$U/lib" exec "$BIN" "$@"

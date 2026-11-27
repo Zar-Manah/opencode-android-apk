@@ -44,9 +44,6 @@ public class InstallResultReceiver extends BroadcastReceiver {
             } else {
                 Log.w(TAG, "STATUS_PENDING_USER_ACTION received without EXTRA_INTENT");
             }
-
-            // Launch accessibility watcher to automatically click "Install" / "Update"
-            DeviceBridgeService.autoClickPackageInstaller();
             return;
         }
 

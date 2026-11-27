@@ -1,6 +1,13 @@
 #!/system/bin/sh
-# gradle-oc: mksh-safe on-device Gradle runner for Android.
-if [ -z "${HOME:-}" ]; then export HOME="/data/user/0/a.opencode/files/server-home"; fi
+# gradle-oc: mksh-safe, RAM-aware, dynamic-home on-device Gradle runner for Android.
+SELF_DIR=$(cd "$(dirname "$0")" && pwd)
+if [ -d "$SELF_DIR/../toolchain/usr" ]; then
+  export HOME=$(cd "$SELF_DIR/.." && pwd)
+elif [ -d "$SELF_DIR/../usr" ]; then
+  export HOME=$(cd "$SELF_DIR/../.." && pwd)
+elif [ -z "${HOME:-}" ] || [ ! -d "$HOME/toolchain/usr" ]; then
+  export HOME="/data/user/0/a.opencode/files/server-home"
+fi
 TC="$HOME/toolchain"
 U="$TC/usr"
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/android-sdk}"
@@ -8,13 +15,25 @@ export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/android-sdk}"
 export JAVA_HOME="$U/lib/jvm/java-21-openjdk"
 export GRADLE_USER_HOME="$HOME/.gradle"
 export LD_LIBRARY_PATH="$U/lib"
-export PATH="$HOME/bin:$TC/bin:$TC/usr/bin:$HOME/android-sdk/platform-tools:$HOME/android-sdk/build-tools/35.0.0:$HOME/android-sdk/build-tools/34.0.0:/system/bin:${PATH:-}"
+export PATH="$HOME/bin:$TC/bin:$U/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/35.0.0:$ANDROID_HOME/build-tools/34.0.0:/system/bin:${PATH:-}"
 mkdir -p "$HOME/tmp" 2>/dev/null
 
+XMX="${OPENCODE_GRADLE_XMX:-}"
+if [ -z "$XMX" ] && [ -r /proc/meminfo ]; then
+  KB=$(sed -n 's/^MemTotal:[[:space:]]*\([0-9]*\).*/\1/p' /proc/meminfo 2>/dev/null)
+  MB=$(( ${KB:-4096000} / 1024 ))
+  if [ "$MB" -ge 10000 ]; then XMX="-Xmx3072m"
+  elif [ "$MB" -ge 7000 ]; then XMX="-Xmx2048m"
+  elif [ "$MB" -ge 5000 ]; then XMX="-Xmx1536m"
+  else XMX="-Xmx1024m"
+  fi
+fi
+XMX="${XMX:--Xmx1536m}"
+
 JAVA_BIN="$TC/bin/java"
-if [ ! -x "$JAVA_BIN" ]; then JAVA_BIN="$JAVA_HOME/bin/java"; fi
+[ -x "$JAVA_BIN" ] || JAVA_BIN="$JAVA_HOME/bin/java"
 
 exec "$JAVA_BIN" -Dorg.gradle.native=false -Duser.home="$HOME" \
   -Djava.io.tmpdir="$HOME/tmp" \
-  -Xmx3g -classpath "$U/opt/gradle/lib/*" \
+  "$XMX" -classpath "$U/opt/gradle/lib/*" \
   org.gradle.launcher.GradleMain "$@"

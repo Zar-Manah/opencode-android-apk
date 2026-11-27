@@ -15,7 +15,14 @@
       "*": "allow",
       "rm -rf /": "deny",
       "rm -fr /": "deny",
-      "rm -Rf /": "deny"
+      "rm -Rf /": "deny",
+      "rm -rf *": "deny",
+      "rm -fr *": "deny",
+      "rm -Rf *": "deny",
+      "shutdown *": "deny",
+      "reboot *": "deny",
+      "mkfs *": "deny",
+      "dd *": "deny"
     }
   },
   "instructions": [
