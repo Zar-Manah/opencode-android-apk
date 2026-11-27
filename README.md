@@ -10,7 +10,7 @@
 [![Crafted with Passion in Spain](https://img.shields.io/badge/Crafted%20with%20Passion%20in-Spain%20%F0%9F%87%AA%F0%9F%87%B8-FFD700?style=for-the-badge)](https://github.com/Zar-Manah/opencode-android-apk)
 [![License](https://img.shields.io/badge/License-GPL%20v3-yellow?style=for-the-badge)](LICENSE.md)
 
-> **The first fully autonomous, native AI software engineering workstation and Android app factory directly on your phone. Full device control (NO ROOT REQUIRED), flawless virtual keyboard & voice dictation, zero emulation overhead, persistent cognitive memory, and complete offline toolchains (JDK 21, Gradle, Android SDK). Crafted with passion in Spain 🇪🇸.**
+> **The first fully autonomous, native AI software engineering workstation and Android app factory directly on your phone (NO ROOT REQUIRED), with flawless virtual keyboard & voice dictation, zero emulation overhead, persistent cognitive memory, and complete offline toolchains (JDK 21, Gradle, Android SDK). Crafted with passion in Spain 🇪🇸.**
 
 ---
 
@@ -24,7 +24,7 @@ Transform your Android smartphone or tablet into a state-of-the-art AI software 
 
 1. **Download `opencode.apk`** from [GitHub Releases](https://github.com/Zar-Manah/opencode-android-apk/releases/latest).
 2. **Install** the APK on your Android device (Android 8.0+ / `arm64-v8a`).
-3. **Open the app** and grant **Storage access** and **Install built apps** (plus optional **Unrestricted background battery** — no Accessibility or Restricted Settings steps needed).
+3. **Open the app** and grant **Storage access** and **Install built apps** (plus optional **Unrestricted background battery**).
 4. **You're ready!** OpenCode automatically creates your initial project workspace and opens straight into Chat (in English or Spanish based on your device language). Works out of the box with free OpenCode models as well as custom API keys.
 
 ---
@@ -44,18 +44,17 @@ Anyone who has tried coding or running AI agents on Android knows the frustratin
 - **Direct User-Space Linker**: Runs natively on Android ARM64 via a high-performance musl dynamic linker (`ld-musl-aarch64`). Completely eliminates slow PRoot containers and `ptrace` system call emulation penalties.
 - **Cool & Battery-Friendly**: Keeps your phone completely cool and preserves battery during normal development sessions, delivering instant launch times (<1s) and fluid responsiveness.
 
-### 3. 📱 Full Device Interaction Without Root (NO ROOT REQUIRED)
-OpenCode breaks out of the sandbox to provide true agentic capability on Android up to the theoretical limit of unrooted operating systems:
-- **Eyes (`pc shot` & `pc dump`)**: Real-time screenshot capture via native Android MediaProjection (`pc shot`, with persistent permission on Android 14+) and UI hierarchy XML inspection (`pc dump`) via self-contained local Wireless Debugging.
-- **Hands (`pc tap` & `pc swipe`)**: Taps UI buttons, navigates menus, and scrolls through applications via optional local Wireless Debugging (`pc control`, no Accessibility Service required).
-- **Typing & Navigation (`pc text` & `pc key`)**: Types into active text fields and sends system navigation keys (Back, Home).
-- **Application Control**: Launches apps (`pc open <package>`), lists installed packages (`pc list`), reads logs, and delivers notifications (`pc notify`).
+### 3. 📱 Native App Launch, Screen Capture & Package Bridge (NO ROOT REQUIRED)
+OpenCode includes a clean local device bridge (`pc`) operating within standard unrooted Android user space:
+- **Eyes (`pc shot`)**: Captures current device screenshots via native Android `MediaProjection` (with persistent permission on Android 14+).
+- **App Launch & Packages**: Launches apps (`pc open <package>`), lists installed packages (`pc list`), reads runtime logs (`pc shell`), and delivers system notifications (`pc notify`).
+- **Autonomous APK Installation**: Installs compiled APKs via Android's native `PackageInstaller` (`pc install <path.apk>`).
 
 ### 4. 🏭 Autonomous On-Device Android App Factory 🔥 (100% Offline)
 Turn your phone into a self-contained mobile software factory capable of designing, scaffolding, compiling, signing, installing, and visually verifying native Android applications:
 - **Bundled Toolchain**: Pre-packaged OpenJDK 21, Android SDK (platforms `android-35`, build-tools `35.0.0` and `34.0.0`, native `d8`, `apksigner`, `aapt2`), and `gradle-oc`.
 - **Zero PC & Zero Internet Required for Builds**: Compiles and signs APKs entirely on-device without an external computer or network connectivity.
-- **Autonomous Deployment & Inspection Loop**: Installs the compiled APK via the local bridge (`pc install`), launches the app, captures screenshots (`pc shot`), analyzes the UI (`pc dump`), and iterates until code and interface are pixel-perfect.
+- **Autonomous Deployment & Inspection Loop**: Installs the compiled APK via the local bridge (`pc install`), launches the app (`pc open`), captures screenshots (`pc shot`), checks logs (`pc shell`), and iterates until code and UI are solid.
 
 ### 5. 🧠 Persistent Cognitive Memory Architecture
 Unlike stateless terminal sessions that forget all context when closed:
@@ -103,7 +102,7 @@ Android's aggressive memory cleaner terminates background tasks. OpenCode includ
 
 ## 🚀 Guided Initial Setup
 
-When launching OpenCode for the first time, a streamlined setup screen guides you through the required permissions (no Accessibility Service or Restricted Settings steps required):
+When launching OpenCode for the first time, a streamlined setup screen guides you through the required permissions:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -125,26 +124,18 @@ When launching OpenCode for the first time, a streamlined setup screen guides yo
 
 Once Storage and Installs are granted, the engine starts in the background and OpenCode launches automatically (or tap **Enter OpenCode →** to continue right away), auto-creating your initial project workspace (`initial-project` / `proyecto-inicial`) and opening straight into Chat!
 
-> **Optional UI automation (`pc control`):** Need UI hierarchy XML dumps (`pc dump`) or touch/typing automation (`pc tap`, `pc swipe`, `pc text`, `pc key`)? Run `pc control` inside OpenCode anytime for guided Wireless Debugging setup. Screen capture (`pc shot`), app launches (`pc open`), APK installs (`pc install`), shell (`pc shell`), and notifications (`pc notify`) work out of the box without it.
-
 ---
 
 ## 🛠️ Built-in Tooling & Bridge Commands
 
-OpenCode includes the `pc` device control CLI, accessible directly from the agent's environment:
+OpenCode includes the `pc` local bridge CLI, accessible directly from the agent's environment:
 
 | Command | Description |
 |---|---|
-| `pc ping` | Check device bridge status and health |
+| `pc ping` | Check device bridge status and readiness |
 | `pc shot [path.png]` | Capture screen to PNG via native Android MediaProjection |
-| `pc dump` | Dump active window UI hierarchy XML (via `pc control` / local ADB) |
-| `pc control` | Open guided Wireless Debugging setup UI (optional) |
-| `pc tap <x> <y>` | Send touch tap to screen coordinate |
-| `pc swipe <x1> <y1> <x2> <y2> [ms]` | Send smooth swipe gesture across screen |
-| `pc text <string>` | Type text into the active input field |
-| `pc key <BACK\|HOME>` | Trigger Android system navigation keys |
-| `pc open <package>` | Launch application by package name |
-| `pc install <path.apk>` | Autonomously install APK on device |
+| `pc open <package>` | Launch application or URL |
+| `pc install <path.apk>` | Autonomously install compiled APK on device |
 | `pc shell <command>` | Execute shell commands with application permissions |
 | `pc list [filter]` | Query installed packages on the device |
 | `pc notify <message> [title]` | Post system notification banner |
@@ -157,7 +148,7 @@ OpenCode includes the `pc` device control CLI, accessible directly from the agen
 1. **Scaffold Project**: The agent creates the project structure in `~/OpenCode/<ProjectName>/` (symlinked to `/storage/emulated/0/OpenCode/<ProjectName>/`).
 2. **Build**: Compiles on-device with `gradle-oc :app:clean assembleDebug`.
 3. **Install**: Deploys autonomously via `pc install app/build/outputs/apk/debug/*-debug.apk`.
-4. **Launch & Verify**: Opens the app with `pc open <package>`, captures screenshots with `pc shot /sdcard/Download/<name>.png`, and inspects UI hierarchy with `pc dump`.
+4. **Launch & Verify**: Opens the app with `pc open <package>`, captures screenshots with `pc shot /storage/emulated/0/OpenCode/tmp/<name>.png`, and inspects logs with `pc shell`.
 
 ---
 
