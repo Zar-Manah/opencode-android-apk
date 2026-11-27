@@ -48,15 +48,15 @@ Anyone who has tried coding or running AI agents on Android knows the frustratin
 OpenCode includes a clean local device bridge (`pc`) operating within standard unrooted Android user space:
 - **Eyes (`pc shot`)**: Captures current device screenshots via native Android `MediaProjection` (with persistent permission on Android 14+).
 - **App Launch & Packages**: Launches apps (`pc open <package>`), lists installed packages (`pc list`), reads runtime logs (`pc shell`), and delivers system notifications (`pc notify`).
-- **Autonomous APK Installation**: Installs compiled APKs via Android's native `PackageInstaller` (`pc install <path.apk>`).
+- **Native APK Installation**: Triggers Android's native `PackageInstaller` session for compiled APKs (`pc install <path.apk>`).
 
 > **Note on Device Control:** Earlier releases included Accessibility-based full device control (automated taps, swipes, and UI hierarchy dumps). Due to Google's current Play Protect and Android security policies for sideloaded apps, shipping unrooted device UI control triggers Play Protect blocks and is no longer viable on modern Android, so it had to be removed in favor of compliant `MediaProjection` capture and `PackageInstaller` workflows.
 
-### 4. 🏭 Autonomous On-Device Android App Factory 🔥 (100% Offline)
+### 4. 🏭 Autonomous On-Device Android App Factory 🔥 (Offline-Ready)
 Turn your phone into a self-contained mobile software factory capable of designing, scaffolding, compiling, signing, installing, and visually verifying native Android applications:
 - **Bundled Toolchain**: Pre-packaged OpenJDK 21, Android SDK (platforms `android-35`, build-tools `35.0.0` and `34.0.0`, native `d8`, `apksigner`, `aapt2`), and `gradle-oc`.
-- **Zero PC & Zero Internet Required for Builds**: Compiles and signs APKs entirely on-device without an external computer or network connectivity.
-- **Autonomous Deployment & Inspection Loop**: Installs the compiled APK via the local bridge (`pc install`), launches the app (`pc open`), captures screenshots (`pc shot`), checks logs (`pc shell`), and iterates until code and UI are solid.
+- **Zero PC & Offline-Ready Builds**: Compiles and signs APKs directly on-device without an external computer, including pre-cached AGP/Kotlin dependencies for offline builds.
+- **Deployment & Inspection Loop**: Triggers Android `PackageInstaller` (`pc install`), launches the app (`pc open`), captures screenshots (`pc shot`), checks logs (`pc shell`), and iterates cleanly.
 
 ### 5. 🧠 Persistent Cognitive Memory Architecture
 Unlike stateless sessions that forget all context when closed:
@@ -151,16 +151,16 @@ OpenCode includes the `pc` local bridge CLI (authenticated per session with `X-B
 
 1. **Scaffold Project**: The agent creates the project structure in `~/OpenCode/<ProjectName>/` (symlinked to `/storage/emulated/0/OpenCode/<ProjectName>/`).
 2. **Build**: Compiles on-device with `gradle-oc :app:clean assembleDebug`.
-3. **Install**: Deploys autonomously via `pc install app/build/outputs/apk/debug/*-debug.apk`.
+3. **Install**: Opens the Android system installer prompt via `pc install app/build/outputs/apk/debug/*-debug.apk`.
 4. **Launch & Verify**: Opens the app with `pc open <package>`, captures screenshots with `pc shot /storage/emulated/0/OpenCode/tmp/<name>.png`, and inspects logs with `pc shell`.
 
 ---
 
 ## 🔒 Security & Privacy
 
-- **100% Local-First**: Runs directly on your device. Zero telemetry.
+- **Local Execution & Zero App Trackers**: The host app, bridge (`127.0.0.1`), local memory (`memory.json`), and build toolchain run on your device with no app-level analytics or trackers. AI inference requests go only to your configured cloud LLM provider (or a local model endpoint if you set one up).
 - **No Root Required**: Operates strictly within standard unrooted Android user space.
-- **Transparent Open Source**: All source code and build recipes are publicly verifiable.
+- **Verifiable App Source**: All Android host app code, bridge services, scripts, and Gradle build config are publicly inspectable in this repository (wrapping the official upstream `anomalyco/opencode` binary).
 
 ---
 
