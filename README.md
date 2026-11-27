@@ -158,9 +158,8 @@ OpenCode includes the `pc` local bridge CLI (authenticated per session with `X-B
 
 ## 🔒 Security & Privacy
 
-- **Local Execution & Zero App Trackers**: The host app, bridge (`127.0.0.1`), local memory (`memory.json`), and build toolchain run on your device with no app-level analytics or trackers. AI inference requests go only to your configured cloud LLM provider (or a local model endpoint if you set one up).
 - **No Root Required**: Operates strictly within standard unrooted Android user space.
-- **Verifiable App Source**: All Android host app code, bridge services, scripts, and Gradle build config are publicly inspectable in this repository (wrapping the official upstream `anomalyco/opencode` binary).
+- **Transparent Open Source**: Android app source code and build configuration are publicly verifiable.
 
 ---
 
