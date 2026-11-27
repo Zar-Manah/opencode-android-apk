@@ -5,7 +5,7 @@
 # OpenCode APK for Android 📱⚡
 
 [![OpenCode Release](https://img.shields.io/github/v/release/Zar-Manah/opencode-android-apk?style=for-the-badge&color=blue)](https://github.com/Zar-Manah/opencode-android-apk/releases/latest)
-[![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20%7C%20arm64--v8a-brightgreen?style=for-the-badge)](https://github.com/Zar-Manah/opencode-android-apk)
+[![Platform](https://img.shields.io/badge/Platform-Android%207.0%2B%20%7C%20arm64--v8a-brightgreen?style=for-the-badge)](https://github.com/Zar-Manah/opencode-android-apk)
 [![No Root Required](https://img.shields.io/badge/Root-NO%20ROOT%20REQUIRED-success?style=for-the-badge)](https://github.com/Zar-Manah/opencode-android-apk)
 [![Crafted with Passion in Spain](https://img.shields.io/badge/Crafted%20with%20Passion%20in-Spain%20%F0%9F%87%AA%F0%9F%87%B8-FFD700?style=for-the-badge)](https://github.com/Zar-Manah/opencode-android-apk)
 [![License](https://img.shields.io/badge/License-GPL%20v3-yellow?style=for-the-badge)](LICENSE.md)
@@ -16,14 +16,14 @@
 
 ## ⚡ The Zero-Friction Magic: Install & Code
 
-Transform your Android smartphone or tablet into a state-of-the-art AI software engineering workstation in less than 60 seconds:
+Transform your Android smartphone or tablet into a state-of-the-art AI software engineering workstation:
 
 ```
 [ Download opencode.apk ] ➔ [ Tap Install ] ➔ [ Allow Permissions ] ➔ [ Code with AI ]
 ```
 
 1. **Download `opencode.apk`** from [GitHub Releases](https://github.com/Zar-Manah/opencode-android-apk/releases/latest).
-2. **Install** the APK on your Android device (Android 8.0+ / `arm64-v8a`).
+2. **Install** the APK on your Android device (Android 7.0+ / `arm64-v8a`).
 3. **Open the app** and grant **Storage access** and **Install built apps** (plus optional **Unrestricted background battery**).
 4. **You're ready!** OpenCode automatically creates your initial project workspace and opens straight into Chat (in English or Spanish based on your device language). Works out of the box with free OpenCode models as well as custom API keys.
 
