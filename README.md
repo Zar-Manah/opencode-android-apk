@@ -10,7 +10,7 @@
 [![Crafted with Passion in Spain](https://img.shields.io/badge/Crafted%20with%20Passion%20in-Spain%20%F0%9F%87%AA%F0%9F%87%B8-FFD700?style=for-the-badge)](https://github.com/Zar-Manah/opencode-android-apk)
 [![License](https://img.shields.io/badge/License-GPL%20v3-yellow?style=for-the-badge)](LICENSE.md)
 
-> **The first fully autonomous, native AI software engineering workstation and Android app factory directly on your phone (NO ROOT REQUIRED), with flawless virtual keyboard & voice dictation, zero emulation overhead, persistent cognitive memory, and complete offline toolchains (JDK 21, Gradle, Android SDK). Crafted with passion in Spain 🇪🇸.**
+> **The first fully autonomous, native AI software engineering workstation and Android app factory directly on your phone (NO ROOT REQUIRED), with flawless virtual keyboard & voice dictation, zero emulation overhead, persistent cognitive memory, and bundled on-device toolchains (JDK 21, Gradle, Android SDK). Crafted with passion in Spain 🇪🇸.**
 
 ---
 
@@ -52,10 +52,10 @@ OpenCode includes a clean local device bridge (`pc`) operating within standard u
 
 > **Note on Device Control:** Earlier releases included Accessibility-based full device control (automated taps, swipes, and UI hierarchy dumps). Due to Google's current Play Protect and Android security policies for sideloaded apps, shipping unrooted device UI control triggers Play Protect blocks and is no longer viable on modern Android, so it had to be removed in favor of compliant `MediaProjection` capture and `PackageInstaller` workflows.
 
-### 4. 🏭 Autonomous On-Device Android App Factory 🔥 (Offline-Ready)
+### 4. 🏭 Autonomous On-Device Android App Factory 🔥
 Turn your phone into a self-contained mobile software factory capable of designing, scaffolding, compiling, signing, installing, and visually verifying native Android applications:
 - **Bundled Toolchain**: Pre-packaged OpenJDK 21, Android SDK (platforms `android-35`, build-tools `35.0.0` and `34.0.0`, native `d8`, `apksigner`, `aapt2`), and `gradle-oc`.
-- **Zero PC & Offline-Ready Builds**: Compiles and signs APKs directly on-device without an external computer, including pre-cached AGP/Kotlin dependencies for offline builds.
+- **Zero PC Required for Builds**: Compiles and signs APKs directly on-device without an external computer, using the bundled toolchain and cached AGP/Kotlin dependencies.
 - **Deployment & Inspection Loop**: Triggers Android `PackageInstaller` (`pc install`), launches the app (`pc open`), captures screenshots (`pc shot`), checks logs (`pc shell`), and iterates cleanly.
 
 ### 5. 🧠 Persistent Cognitive Memory Architecture
