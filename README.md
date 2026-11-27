@@ -36,13 +36,13 @@ Anyone who has tried coding or running AI agents on Android knows the frustratin
 **OpenCode APK for Android was engineered to solve every single one of these problems:**
 
 ### 1. ⌨️ Flawless Virtual Keyboard & Voice-to-Text Dictation
-- **Zero Input Glitches**: Works effortlessly with native virtual keyboards (Gboard, Samsung Keyboard, SwiftKey) and external hardware keyboards. No repeated key bugs, no input buffer freezing, and no cursor jumping.
-- **Native Voice Dictation**: Dictate prompts, architectural plans, or code refactors directly using your keyboard's microphone button without breaking prompt positions or crashing the session.
+- **Zero Input Glitches**: Native WebView interface paired with `mobile-enhancer.js` and an Android IME Enter bridge — works cleanly with Gboard, Samsung Keyboard, SwiftKey, and external hardware keyboards without terminal buffer freezing or cursor jumping.
+- **Native Voice Dictation**: Dictate prompts, architectural plans, or code refactors directly using your keyboard's microphone button cleanly in the web composer.
 - **Intuitive Touch Controls**: Seamless multiline editing, full clipboard copy-paste, and natural touch navigation.
 
 ### 2. 🚀 Pure Native arm64 Execution (Zero PRoot / Container Overhead)
 - **Direct User-Space Linker**: Runs natively on Android ARM64 via a high-performance musl dynamic linker (`ld-musl-aarch64`). Completely eliminates slow PRoot containers and `ptrace` system call emulation penalties.
-- **Cool & Battery-Friendly**: Keeps your phone completely cool and preserves battery during normal development sessions, delivering instant launch times (<1s) and fluid responsiveness.
+- **Cool & Battery-Friendly**: Keeps your phone cool and avoids emulation overhead during development sessions, delivering responsive native execution.
 
 ### 3. 📱 Native App Launch, Screen Capture & Package Bridge (NO ROOT REQUIRED)
 OpenCode includes a clean local device bridge (`pc`) operating within standard unrooted Android user space:
@@ -59,8 +59,8 @@ Turn your phone into a self-contained mobile software factory capable of designi
 - **Autonomous Deployment & Inspection Loop**: Installs the compiled APK via the local bridge (`pc install`), launches the app (`pc open`), captures screenshots (`pc shot`), checks logs (`pc shell`), and iterates until code and UI are solid.
 
 ### 5. 🧠 Persistent Cognitive Memory Architecture
-Unlike stateless terminal sessions that forget all context when closed:
-- **Episodic Long-Term Memory**: Autonomous memory engine (`~/.config/opencode/memory/memory.json`) preserves project context, device characteristics, architectural decisions, and user preferences across sessions.
+Unlike stateless sessions that forget all context when closed:
+- **Episodic Long-Term Memory**: Protected by `plugins/memory.js` (`~/.config/opencode/memory/memory.json` with automatic `.bak` recovery backup, append-only `journal.jsonl`, and nightly consolidation), preserving project context, device configuration, and user preferences across upgrades and sessions.
 - **Continuous Learning**: Retains successful patterns and verification strategies learned on the device.
 
 ### 6. 🔋 24/7 Background Daemon & Clean Notification Center
@@ -70,12 +70,12 @@ Android's aggressive memory cleaner terminates background tasks. OpenCode includ
 ┌─────────────────────────────────────────────────────────┐
 │ OpenCode                                                │
 │ ┌─────────────────────────┐   ┌───────────────────────┐ │
-│ │          Exit           │   │         24/7          │ │
+│ │       24/7: OFF         │   │         Exit          │ │
 │ └─────────────────────────┘   └───────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
 ```
 
-- **⚡ `24/7` (Battery Saver & WakeLock Toggle)**: Keeps the CPU awake via partial wake-lock. Disabled by default to preserve 100% of battery when the screen is off; tap to activate for intensive background builds, repository indexing, or overnight agent runs.
+- **⚡ `24/7: OFF / ON` (WakeLock Toggle)**: Keeps the CPU awake via partial wake-lock. Off by default (`24/7: OFF`) to save battery when the screen is off; tap to switch to `24/7: ON` for long background builds or overnight runs.
 - **🛑 `Exit` (Clean Shutdown)**: Instant one-tap graceful termination: frees all background processes, releases system locks, removes notifications, and restores RAM.
 
 ---
@@ -83,21 +83,23 @@ Android's aggressive memory cleaner terminates background tasks. OpenCode includ
 ## 🏗️ Architecture Overview
 
 ```
-┌────────────────────────────────────────────────────────┐
-│             Android System (Linux Kernel)              │
-├──────────────────────────┬─────────────────────────────┤
-│   OpenCode Host App      │   Device Bridge Server      │
-│   (a.opencode / UI)      │   (:4399 / MediaProjection) │
-├──────────────────────────┴─────────────────────────────┤
-│             Native Android User Space                  │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │ Official OpenCode Engine (ld-musl-aarch64 :4096) │  │
-│  │ Local Cognitive Layer (memory.json, AGENTS.md)   │  │
-│  │ Device Bridge CLI (`pc`)                         │  │
-│  │ Native Toolchain (JDK 21 + SDK 35/34 + gradle-oc)│  │
-│  │ Workspace Root: ~/OpenCode (/sdcard/OpenCode)    │  │
-│  └──────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│               Android System (Linux Kernel)              │
+├────────────────────────────┬─────────────────────────────┤
+│   OpenCode Host App        │   Device Bridge & Capture   │
+│   (a.opencode / WebView +  │   (127.0.0.1:4399 +         │
+│    mobile-enhancer.js)     │    MediaProjection API)     │
+├────────────────────────────┴─────────────────────────────┤
+│               Native Android User Space                  │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │ Official OpenCode Engine (ld-musl-aarch64 :4096)   │  │
+│  │ Dynamic $HOME (files/server-home)                  │  │
+│  │ Cognitive Layer (plugins/memory.js, AGENTS.md)     │  │
+│  │ Authenticated Bridge CLI (`pc`, X-Bridge-Token)    │  │
+│  │ Native Toolchain (JDK 21 + SDK 35/34 + gradle-oc)  │  │
+│  │ ~/OpenCode -> /storage/emulated/0/OpenCode         │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -111,7 +113,7 @@ When launching OpenCode for the first time, a streamlined setup screen guides yo
 │                       OpenCode                          │
 │ Storage access (/OpenCode)                  [  Allow  ] │
 │ Install built apps                          [  Allow  ] │
-│ Unrestricted background battery (optional)  [  Allow  ] │
+│ Unrestricted background battery             [  Allow  ] │
 │                                                         │
 │ Storage: OK  ·  Installs: OK  ·  Battery: OK            │
 └─────────────────────────────────────────────────────────┘
@@ -130,18 +132,18 @@ Once Storage and Installs are granted, the engine starts in the background and O
 
 ## 🛠️ Built-in Tooling & Bridge Commands
 
-OpenCode includes the `pc` local bridge CLI, accessible directly from the agent's environment:
+OpenCode includes the `pc` local bridge CLI (authenticated per session with `X-Bridge-Token` via the bundled Bun runtime, zero `curl` dependency), accessible directly from the agent's environment:
 
 | Command | Description |
 |---|---|
 | `pc ping` | Check device bridge status and readiness |
 | `pc shot [path.png]` | Capture screen to PNG via native Android MediaProjection |
-| `pc open <package>` | Launch application or URL |
-| `pc install <path.apk>` | Autonomously install compiled APK on device |
+| `pc open <package\|url>` | Launch application or URL |
+| `pc install <path.apk>` | Launch system PackageInstaller session for compiled APK |
 | `pc shell <command>` | Execute shell commands with application permissions |
 | `pc list [filter]` | Query installed packages on the device |
 | `pc notify <message> [title]` | Post system notification banner |
-| `gradle-oc <tasks>` | On-device mksh-safe Gradle runner |
+| `gradle-oc <tasks>` | RAM-adaptive, mksh-safe on-device Gradle runner |
 
 ---
 
