@@ -27,6 +27,8 @@ Transform your Android smartphone or tablet into a state-of-the-art AI software 
 3. **Open the app** and grant **Storage access** and **Install built apps** (plus optional **Unrestricted background battery**).
 4. **You're ready!** OpenCode automatically creates your initial project workspace and opens straight into Chat (in English or Spanish based on your device language). Works out of the box with free OpenCode models as well as custom API keys.
 
+> **Building from Source vs. Release APK:** Large pre-bundled assets (`sdk/`, `gradle-cache/`, `server/opencode`, and `toolchain/*.tar*`) exceed GitHub's 100 MB file limit and are excluded in `.gitignore`. Download `opencode.apk` from [GitHub Releases](https://github.com/Zar-Manah/opencode-android-apk/releases/latest) for the complete 495 MB ready-to-install APK; running `./gradlew` from a `git clone` builds only the Android wrapper without those bundled tarballs.
+
 ---
 
 ## 🌟 Why OpenCode for Android Solves Every Mobile Pain Point
@@ -156,7 +158,7 @@ OpenCode includes the `pc` local bridge CLI (authenticated per session with `X-B
 
 ---
 
-## 🔒 Security & Privacy
+## 🔒 Security
 
 - **No Root Required**: Operates strictly within standard unrooted Android user space.
 - **Transparent Open Source**: Android app source code and build configuration are publicly verifiable.
