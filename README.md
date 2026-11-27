@@ -50,6 +50,8 @@ OpenCode includes a clean local device bridge (`pc`) operating within standard u
 - **App Launch & Packages**: Launches apps (`pc open <package>`), lists installed packages (`pc list`), reads runtime logs (`pc shell`), and delivers system notifications (`pc notify`).
 - **Autonomous APK Installation**: Installs compiled APKs via Android's native `PackageInstaller` (`pc install <path.apk>`).
 
+> **Note on Device Control:** Earlier releases included Accessibility-based full device control (automated taps, swipes, and UI hierarchy dumps). Due to Google's current Play Protect and Android security policies for sideloaded apps, shipping unrooted device UI control triggers Play Protect blocks and is no longer viable on modern Android, so it had to be removed in favor of compliant `MediaProjection` capture and `PackageInstaller` workflows.
+
 ### 4. 🏭 Autonomous On-Device Android App Factory 🔥 (100% Offline)
 Turn your phone into a self-contained mobile software factory capable of designing, scaffolding, compiling, signing, installing, and visually verifying native Android applications:
 - **Bundled Toolchain**: Pre-packaged OpenJDK 21, Android SDK (platforms `android-35`, build-tools `35.0.0` and `34.0.0`, native `d8`, `apksigner`, `aapt2`), and `gradle-oc`.
