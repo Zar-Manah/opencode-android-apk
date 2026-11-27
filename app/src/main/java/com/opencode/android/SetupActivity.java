@@ -52,7 +52,7 @@ public class SetupActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             return Environment.isExternalStorageManager();
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && c != null) {
+        if (c != null) {
             return c.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED;
         }
@@ -60,7 +60,6 @@ public class SetupActivity extends Activity {
     }
 
     static boolean batteryOk(Context c) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true;
         try {
             PowerManager pm = (PowerManager) c.getSystemService(POWER_SERVICE);
             return pm != null && pm.isIgnoringBatteryOptimizations(c.getPackageName());
@@ -70,6 +69,10 @@ public class SetupActivity extends Activity {
     }
 
     private void openUnknownSources() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            openAppDetails();
+            return;
+        }
         try {
             startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                 Uri.parse("package:" + getPackageName())));
@@ -101,12 +104,10 @@ public class SetupActivity extends Activity {
 
     private void openAllFilesSettings() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                }, REQ_STORAGE);
-            }
+            requestPermissions(new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }, REQ_STORAGE);
             return;
         }
         try {
@@ -123,17 +124,15 @@ public class SetupActivity extends Activity {
     }
 
     private void openBatterySettings() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                    Uri.parse("package:" + getPackageName())));
-                return;
-            } catch (Exception ignored) {}
-            try {
-                startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
-                return;
-            } catch (Exception ignored) {}
-        }
+        try {
+            startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                Uri.parse("package:" + getPackageName())));
+            return;
+        } catch (Exception ignored) {}
+        try {
+            startActivity(new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+            return;
+        } catch (Exception ignored) {}
         openAppDetails();
     }
 
@@ -231,13 +230,11 @@ public class SetupActivity extends Activity {
         installCard = makeCardRow(installBtn, installText, d);
         root.addView(installCard);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            batteryBtn = mkActionButton(allowLabel, d);
-            batteryBtn.setOnClickListener(v -> openBatterySettings());
-            batteryText = new TextView(this);
-            batteryCard = makeCardRow(batteryBtn, batteryText, d);
-            root.addView(batteryCard);
-        }
+        batteryBtn = mkActionButton(allowLabel, d);
+        batteryBtn.setOnClickListener(v -> openBatterySettings());
+        batteryText = new TextView(this);
+        batteryCard = makeCardRow(batteryBtn, batteryText, d);
+        root.addView(batteryCard);
 
         status = new TextView(this);
         status.setTextColor(0xFF71717A);
@@ -309,7 +306,6 @@ public class SetupActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQ_STORAGE && !filesOk(this)
-            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
             && !shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             openAppDetails();
         }

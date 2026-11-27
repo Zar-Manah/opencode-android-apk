@@ -28,7 +28,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.HashMap;
@@ -36,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /** OpenCode: Authenticated local device control bridge at 127.0.0.1:4399 for `pc` CLI. */
 public class DeviceBridgeService {
@@ -192,45 +190,6 @@ public class DeviceBridgeService {
                             .toString().getBytes(StandardCharsets.UTF_8);
                         break;
                     }
-                    case "/dump":
-                        body = LocalAdbEngine.dumpUi(getCtx()).getBytes(StandardCharsets.UTF_8);
-                        type = "text/xml";
-                        break;
-                    case "/tap":
-                        body = execDeviceInput("input tap " + num(q, "x") + " " + num(q, "y"), "tap");
-                        break;
-                    case "/swipe":
-                        body = execDeviceInput("input swipe " + num(q, "x1") + " " + num(q, "y1") + " "
-                            + num(q, "x2") + " " + num(q, "y2") + " " + num(q, "ms", 300), "swipe");
-                        break;
-                    case "/text": {
-                        String txt = str(q, "t");
-                        if (txt.isEmpty()) {
-                            body = ok("text");
-                        } else {
-                            String esc = txt.replace(" ", "%s").replace("'", "'\\''");
-                            body = execDeviceInput("input text '" + esc + "'", "text");
-                        }
-                        break;
-                    }
-                    case "/key":
-                        body = execKey(str(q, "k"));
-                        break;
-                    case "/pair": {
-                        String pRes = LocalAdbEngine.pair(getCtx(), str(q, "c"), num(q, "p", -1));
-                        boolean pOk = pRes.startsWith("OK:");
-                        if (!pOk) code = 400;
-                        body = new JSONObject().put("ok", pOk).put("message", pRes)
-                            .toString().getBytes(StandardCharsets.UTF_8);
-                        break;
-                    }
-                    case "/control": {
-                        Intent ctrl = new Intent(getCtx(), WirelessPairActivity.class)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        getCtx().startActivity(ctrl);
-                        body = ok("control-opened");
-                        break;
-                    }
                     case "/open":
                         open(str(q, "p"));
                         body = ok("open");
@@ -264,9 +223,6 @@ public class DeviceBridgeService {
                         body = err("unknown route");
                         break;
                 }
-            } catch (PairingRequiredException pe) {
-                code = 501;
-                body = errPairing(pe.getMessage());
             } catch (Exception e) {
                 code = 500;
                 body = err(e.getMessage());
@@ -276,7 +232,16 @@ public class DeviceBridgeService {
     }
 
     private static void writeResponse(OutputStream out, int code, String type, byte[] body) throws Exception {
-        String status = code == 200 ? "OK" : (code == 403 ? "Forbidden" : (code == 404 ? "Not Found" : "Error"));
+        String status;
+        switch (code) {
+            case 200: status = "OK"; break;
+            case 400: status = "Bad Request"; break;
+            case 403: status = "Forbidden"; break;
+            case 404: status = "Not Found"; break;
+            case 500: status = "Internal Server Error"; break;
+            case 501: status = "Not Implemented"; break;
+            default: status = "Error"; break;
+        }
         String head = "HTTP/1.1 " + code + " " + status + "\r\n"
             + "Content-Type: " + type + "\r\n"
             + "Content-Length: " + body.length + "\r\n"
@@ -330,47 +295,6 @@ public class DeviceBridgeService {
         return v == null ? "" : v;
     }
 
-    private static final class PairingRequiredException extends RuntimeException {
-        PairingRequiredException(String msg) { super(msg); }
-    }
-
-    private static byte[] errPairing(String s) {
-        try {
-            return new JSONObject()
-                .put("ok", false)
-                .put("needsPairing", true)
-                .put("error", s != null ? s : "Pair Wireless Debugging once via OpenCode Control/Settings")
-                .toString().getBytes(StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            return "{\"ok\":false,\"needsPairing\":true,\"error\":\"pairing required\"}".getBytes(StandardCharsets.UTF_8);
-        }
-    }
-
-    private static byte[] execDeviceInput(String cmd, String action) {
-        try {
-            String out = LocalAdbEngine.shell(getCtx(), cmd);
-            Log.i(TAG, action + " via local ADB -> " + out.trim());
-            return ok(action);
-        } catch (Exception e) {
-            throw new PairingRequiredException(e.getMessage());
-        }
-    }
-
-    private static byte[] execKey(String k) {
-        if (k == null || k.isEmpty()) return ok("key");
-        String event;
-        switch (k.toUpperCase()) {
-            case "BACK": event = "KEYCODE_BACK"; break;
-            case "HOME": event = "KEYCODE_HOME"; break;
-            case "RECENTS":
-            case "APP_SWITCH": event = "KEYCODE_APP_SWITCH"; break;
-            case "NOTIFICATIONS": event = "287"; break;
-            case "POWER": event = "KEYCODE_POWER"; break;
-            default: event = k; break;
-        }
-        return execDeviceInput("input keyevent " + event, "key");
-    }
-
     private static void open(String p) {
         if (p == null || p.isEmpty()) throw new RuntimeException("missing package or URL");
         Context ctx = getCtx();
@@ -399,9 +323,9 @@ public class DeviceBridgeService {
                 o.write(buf, 0, n);
                 total += n;
             }
-            boolean done = p.waitFor(120, TimeUnit.SECONDS);
+            boolean done = CompatUtils.waitForProcess(p, 120000L);
             if (!done) {
-                p.destroyForcibly();
+                CompatUtils.destroyForciblyCompat(p);
                 return "(timeout)\n" + o.toString("UTF-8");
             }
             return "exit=" + p.exitValue() + "\n" + o.toString("UTF-8");
@@ -428,16 +352,6 @@ public class DeviceBridgeService {
         File res = new File(ctx.getFilesDir(), "server-home/last-install.txt");
         try {
             if (res.exists()) res.delete();
-        } catch (Exception ignored) {}
-
-        // If local ADB is active (Wireless Debugging or USB tcpip), install silently with zero UI prompts
-        try {
-            if (LocalAdbEngine.hasActiveSerial() && LocalAdbEngine.installApk(ctx, apkPath)) {
-                try (FileOutputStream fos = new FileOutputStream(res)) {
-                    fos.write("status=0 msg=installed_via_adb\n".getBytes(StandardCharsets.UTF_8));
-                }
-                return;
-            }
         } catch (Exception ignored) {}
 
         PackageInstaller pi = ctx.getPackageManager().getPackageInstaller();
@@ -492,7 +406,7 @@ public class DeviceBridgeService {
             if (!res.exists()) {
                 return "{\"ok\":false,\"error\":\"install-timeout\"}";
             }
-            byte[] rawBytes = Files.readAllBytes(res.toPath());
+            byte[] rawBytes = CompatUtils.readFileBytes(res);
             String raw = new String(rawBytes, StandardCharsets.UTF_8).trim();
 
             int status = -999;
@@ -553,15 +467,6 @@ public class DeviceBridgeService {
 
     private static byte[] shot() {
         Context ctx = getCtx();
-        if (LocalAdbEngine.hasActiveSerial()) {
-            try {
-                byte[] png = LocalAdbEngine.execOut(ctx, "screencap -p");
-                if (png != null && png.length > 8
-                    && (png[0] & 0xFF) == 0x89 && png[1] == 'P' && png[2] == 'N' && png[3] == 'G') {
-                    return png;
-                }
-            } catch (Exception ignored) {}
-        }
         try {
             byte[] png = ScreenCaptureService.capturePng(ctx);
             return png != null ? png : new byte[0];

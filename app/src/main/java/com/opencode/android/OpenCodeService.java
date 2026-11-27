@@ -26,12 +26,10 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 /** OpenCode: Foreground service managing local server, fast asset seeding, and lifecycle. */
@@ -120,11 +118,11 @@ public class OpenCodeService extends Service {
         if (p != null) {
             try {
                 p.destroy();
-                if (!p.waitFor(1500, TimeUnit.MILLISECONDS)) {
-                    p.destroyForcibly();
+                if (!CompatUtils.waitForProcess(p, 1500L)) {
+                    CompatUtils.destroyForciblyCompat(p);
                 }
             } catch (Exception ignored) {
-                try { p.destroyForcibly(); } catch (Exception ignored2) {}
+                CompatUtils.destroyForciblyCompat(p);
             }
         }
         updateNotification();
@@ -135,7 +133,6 @@ public class OpenCodeService extends Service {
         stopServer();
         DeviceBridgeService.stopBridge();
         ScreenCaptureService.stopCapture(this);
-        LocalAdbEngine.shutdown(this);
         releaseWakeLock();
         factoryReady = false;
         engineStarted = false;
@@ -305,17 +302,6 @@ public class OpenCodeService extends Service {
             }, "OpenCode-FactoryBG");
             factoryThread.setPriority(Thread.MIN_PRIORITY);
             factoryThread.start();
-
-            // Probe local ADB/root separately so it never delays UI or toolchain setup
-            Thread adbThread = new Thread(() -> {
-                try { Thread.sleep(2500); } catch (InterruptedException ignored) { return; }
-                if (!stopping) {
-                    LocalAdbEngine.isRootAvailable();
-                    LocalAdbEngine.ensureConnected(this);
-                }
-            }, "OpenCode-AdbProbe");
-            adbThread.setPriority(Thread.MIN_PRIORITY);
-            adbThread.start();
         } catch (Exception e) {
             Log.e(TAG, "Initialization failed", e);
             fatalError = e.getMessage();
@@ -325,7 +311,7 @@ public class OpenCodeService extends Service {
 
     private void ensureSymlink(File target, File link) {
         try {
-            if (link.exists() || Files.isSymbolicLink(link.toPath())) {
+            if (link.exists() || CompatUtils.isSymbolicLink(link)) {
                 link.delete();
             }
             Os.symlink(target.getAbsolutePath(), link.getAbsolutePath());
@@ -446,9 +432,17 @@ public class OpenCodeService extends Service {
                 env.put("OPENCODE_GRADLE_XMX", optimalGradleXmx());
                 env.put("OPENCODE_D8_XMX", optimalD8Xmx());
                 pb.directory(home);
-                pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log));
                 pb.redirectErrorStream(true);
-                int exit = pb.start().waitFor();
+                Process setupProc = pb.start();
+                try (InputStream in = setupProc.getInputStream();
+                     FileOutputStream logOut = new FileOutputStream(log, true)) {
+                    byte[] buf = new byte[8192];
+                    int n;
+                    while ((n = in.read(buf)) != -1) {
+                        logOut.write(buf, 0, n);
+                    }
+                }
+                int exit = setupProc.waitFor();
                 Log.i(TAG, "factory setup exit=" + exit);
             }
 
@@ -802,7 +796,7 @@ public class OpenCodeService extends Service {
     private void copyAsset(String asset, File dest) throws Exception {
         File parent = dest.getParentFile();
         if (parent != null && !parent.exists()) parent.mkdirs();
-        if (Files.isSymbolicLink(dest.toPath())) dest.delete();
+        if (CompatUtils.isSymbolicLink(dest)) dest.delete();
         try (InputStream in = getAssets().open(asset);
              OutputStream out = new FileOutputStream(dest)) {
             byte[] buf = new byte[1048576];
@@ -822,12 +816,8 @@ public class OpenCodeService extends Service {
     }
 
     private static byte[] fileBytes(File f) {
-        try (InputStream in = new FileInputStream(f);
-             ByteArrayOutputStream o = new ByteArrayOutputStream((int) Math.min(f.length(), 1048576))) {
-            byte[] buf = new byte[65536];
-            int n;
-            while ((n = in.read(buf)) != -1) o.write(buf, 0, n);
-            return o.toByteArray();
+        try {
+            return CompatUtils.readFileBytes(f);
         } catch (Exception e) {
             return null;
         }
@@ -837,13 +827,13 @@ public class OpenCodeService extends Service {
     private boolean copyAssetIfChanged(String asset, File dest) {
         try {
             byte[] want = assetBytes(asset);
-            if (dest.exists() && !Files.isSymbolicLink(dest.toPath()) && dest.length() == want.length) {
+            if (dest.exists() && !CompatUtils.isSymbolicLink(dest) && dest.length() == want.length) {
                 byte[] have = fileBytes(dest);
                 if (have != null && Arrays.equals(have, want)) return false;
             }
             File parent = dest.getParentFile();
             if (parent != null && !parent.exists()) parent.mkdirs();
-            if (Files.isSymbolicLink(dest.toPath())) dest.delete();
+            if (CompatUtils.isSymbolicLink(dest)) dest.delete();
             try (OutputStream out = new FileOutputStream(dest)) {
                 out.write(want);
             }
@@ -857,13 +847,13 @@ public class OpenCodeService extends Service {
     private boolean writeTextIfChanged(File dest, String text) {
         try {
             byte[] want = text.getBytes(StandardCharsets.UTF_8);
-            if (dest.exists() && !Files.isSymbolicLink(dest.toPath()) && dest.length() == want.length) {
+            if (dest.exists() && !CompatUtils.isSymbolicLink(dest) && dest.length() == want.length) {
                 byte[] have = fileBytes(dest);
                 if (have != null && Arrays.equals(have, want)) return false;
             }
             File parent = dest.getParentFile();
             if (parent != null && !parent.exists()) parent.mkdirs();
-            if (Files.isSymbolicLink(dest.toPath())) dest.delete();
+            if (CompatUtils.isSymbolicLink(dest)) dest.delete();
             try (FileOutputStream out = new FileOutputStream(dest)) {
                 out.write(want);
             }
@@ -944,15 +934,11 @@ public class OpenCodeService extends Service {
     private static void chmod(File f, int mode) {
         if (f == null || !f.exists()) return;
         try {
-            f.setReadable(true, false);
-            if ((mode & 0111) != 0) f.setExecutable(true, false);
-        } catch (Exception ignored) {}
-        try {
             Os.chmod(f.getAbsolutePath(), mode);
         } catch (Exception e) {
             try {
                 Runtime.getRuntime().exec(new String[]{
-                    "/system/bin/chmod", (mode & 0111) != 0 ? "755" : "644", f.getAbsolutePath()
+                    "/system/bin/chmod", Integer.toOctalString(mode), f.getAbsolutePath()
                 }).waitFor();
             } catch (Exception ignored) {}
         }
@@ -1010,13 +996,13 @@ public class OpenCodeService extends Service {
                 } else if (type == '2') {
                     File p = f.getParentFile();
                     if (p != null && !p.exists()) p.mkdirs();
-                    if (f.exists() || Files.isSymbolicLink(f.toPath())) f.delete();
+                    if (f.exists() || CompatUtils.isSymbolicLink(f)) f.delete();
                     try { Os.symlink(linkTarget, f.getAbsolutePath()); }
                     catch (Exception e) { Log.e(TAG, "symlink " + f, e); }
                 } else if (type == '0' || type == 0 || type == ' ') {
                     File p = f.getParentFile();
                     if (p != null && !p.exists()) p.mkdirs();
-                    if (Files.isSymbolicLink(f.toPath())) f.delete();
+                    if (CompatUtils.isSymbolicLink(f)) f.delete();
                     try (OutputStream o = new FileOutputStream(f)) {
                         copyN(in, o, size, ioBuf);
                     }
@@ -1129,13 +1115,13 @@ public class OpenCodeService extends Service {
         String ch = "opencode";
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (nm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel chan = new NotificationChannel(ch, "OpenCode",
+            NotificationChannel chan = new NotificationChannel(ch, getString(R.string.app_name),
                 NotificationManager.IMPORTANCE_LOW);
             chan.setShowBadge(false);
             nm.createNotificationChannel(chan);
         }
 
-        int pFlags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0);
+        int pFlags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
 
         Intent appIntent = new Intent(this, MainActivity.class);
         PendingIntent appPending = PendingIntent.getActivity(this, 0, appIntent, pFlags);
@@ -1156,7 +1142,7 @@ public class OpenCodeService extends Service {
 
         b.setContentTitle(getString(R.string.app_name))
             .setContentText(sub)
-            .setSmallIcon(getResources().getIdentifier("ic_launcher", "mipmap", getPackageName()))
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(appPending)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -1164,13 +1150,8 @@ public class OpenCodeService extends Service {
 
         String toggleLabel = getString(is24_7 ? R.string.notif_action_24_7_on : R.string.notif_action_24_7_off);
         String exitLabel = getString(R.string.notif_action_exit);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            b.addAction(new Notification.Action.Builder(null, toggleLabel, toggle247Pending).build());
-            b.addAction(new Notification.Action.Builder(null, exitLabel, exitPending).build());
-        } else {
-            b.addAction(0, toggleLabel, toggle247Pending);
-            b.addAction(0, exitLabel, exitPending);
-        }
+        b.addAction(new Notification.Action.Builder(null, toggleLabel, toggle247Pending).build());
+        b.addAction(new Notification.Action.Builder(null, exitLabel, exitPending).build());
 
         return b.build();
     }

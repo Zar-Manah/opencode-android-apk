@@ -40,7 +40,7 @@
     <string name="boot_toolchain_error">Setup error: %1$s</string>
     <string name="boot_install_tc">Installing tools (1/3)…</string>
     <string name="boot_install_sdk">Installing Android SDK (2/3)…</string>
-    <string name="boot_install_gradle">Preparing offline cache (3/3)…</string>
+    <string name="boot_install_gradle">Preparing Gradle cache (3/3)…</string>
     <string name="boot_verify_tc">Verifying environment…</string>
     <string name="notif_running_local">Running in background</string>
     <string name="notif_running_24_7">Active 24/7 (WakeLock ON)</string>
@@ -49,4 +49,7 @@
     <string name="notif_action_exit">Exit</string>
     <string name="cap_channel_name">Screen Capture</string>
     <string name="cap_notif_text">Screen capture active for pc shot</string>
+    <string name="err_open_project">Failed to open project</string>
+    <string name="install_notif_success">App installed successfully</string>
+    <string name="install_notif_failed">Installation failed (%1$d)</string>
 </resources>

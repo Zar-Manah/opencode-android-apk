@@ -1,5 +1,5 @@
 {
-  "version": "2.2.14",
+  "version": "2.2.15",
   "identity": "OpenCode Android native agent",
   "environment": {
     "platform": "Android",

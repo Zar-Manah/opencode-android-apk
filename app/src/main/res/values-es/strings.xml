@@ -40,7 +40,7 @@
     <string name="boot_toolchain_error">Error de configuración: %1$s</string>
     <string name="boot_install_tc">Instalando herramientas (1/3)…</string>
     <string name="boot_install_sdk">Instalando SDK de Android (2/3)…</string>
-    <string name="boot_install_gradle">Preparando caché offline (3/3)…</string>
+    <string name="boot_install_gradle">Preparando caché de Gradle (3/3)…</string>
     <string name="boot_verify_tc">Verificando entorno…</string>
     <string name="notif_running_local">En segundo plano</string>
     <string name="notif_running_24_7">Activo 24/7 (WakeLock ON)</string>
@@ -49,4 +49,7 @@
     <string name="notif_action_exit">Salir</string>
     <string name="cap_channel_name">Captura de pantalla</string>
     <string name="cap_notif_text">Captura de pantalla activa para pc shot</string>
+    <string name="err_open_project">Error al abrir el proyecto</string>
+    <string name="install_notif_success">Aplicación instalada correctamente</string>
+    <string name="install_notif_failed">Error de instalación (%1$d)</string>
 </resources>

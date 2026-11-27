@@ -41,13 +41,13 @@ if [ "$CMD" = "install" ] && [ -n "$A1" ]; then
   esac
 fi
 
-if [ "$CMD" = "text" ] || [ "$CMD" = "shell" ]; then
+if [ "$CMD" = "shell" ]; then
   shift 1 2>/dev/null || true
   A1="$*"
 fi
 
 if [ -x "$S/ld-musl-aarch64.so.1" ] && [ -f "$S/opencode" ]; then
-  PC_CMD="$CMD" PC_A1="$A1" PC_A2="$A2" PC_A3="$A3" PC_A4="$A4" PC_A5="$A5" PC_TOK="$TOK" \
+  PC_CMD="$CMD" PC_A1="$A1" PC_A2="$A2" PC_TOK="$TOK" \
   BUN_BE_BUN=1 "$S/ld-musl-aarch64.so.1" --library-path "$S" "$S/opencode" -e '
 const fs = require("node:fs");
 const e = process.env;
@@ -55,9 +55,6 @@ const cmd = e.PC_CMD || "";
 const tok = e.PC_TOK || "";
 const a1 = e.PC_A1 || "";
 const a2 = e.PC_A2 || "";
-const a3 = e.PC_A3 || "";
-const a4 = e.PC_A4 || "";
-const a5 = e.PC_A5 || "";
 const base = "http://127.0.0.1:4399";
 const q = (k, v) => encodeURIComponent(k) + "=" + encodeURIComponent(v);
 
@@ -65,25 +62,18 @@ let route = "";
 switch (cmd) {
   case "ping": route = "/ping"; break;
   case "shot": route = "/shot"; break;
-  case "dump": route = "/dump"; break;
-  case "tap": route = "/tap?" + q("x", a1) + "&" + q("y", a2); break;
-  case "swipe": route = "/swipe?" + q("x1", a1) + "&" + q("y1", a2) + "&" + q("x2", a3) + "&" + q("y2", a4) + "&" + q("ms", a5 || "300"); break;
-  case "text": route = "/text?" + q("t", a1); break;
-  case "key": route = "/key?" + q("k", a1); break;
   case "open": route = "/open?" + q("p", a1); break;
   case "install": route = "/install?" + q("p", a1); break;
   case "shell": route = "/shell?" + q("c", a1); break;
   case "notify": route = "/notify?" + q("m", a1) + "&" + q("t", a2); break;
   case "list": route = "/list?" + q("f", a1); break;
-  case "pair": route = "/pair?" + q("c", a1) + "&" + q("p", a2); break;
-  case "control": route = "/control"; break;
   default:
-    console.log("usage: pc ping|shot [png]|dump|tap x y|swipe x1 y1 x2 y2 [ms]|text txt|key k|open pkg|install apk|shell cmd|notify msg [title]|list [f]|pair code [port]|control");
+    console.log("usage: pc ping|shot [png]|open pkg|install apk|shell cmd|notify msg [title]|list [f]");
     process.exit(cmd ? 1 : 0);
 }
 
 try {
-  const sig = typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(45000) : undefined;
+  const sig = typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(130000) : undefined;
   const res = await fetch(base + route, { headers: { "X-Bridge-Token": tok }, signal: sig });
   if (cmd === "shot") {
     if (!res.ok) {

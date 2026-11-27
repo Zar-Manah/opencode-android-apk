@@ -20,7 +20,11 @@ CACHE_DIR="$APP_ROOT/cache/opencode"
 
 server_up() {
   if command -v curl >/dev/null 2>&1; then
-    curl -s -o /dev/null -m 2 "http://127.0.0.1:4096/" 2>/dev/null
+    curl -s -o /dev/null -m 2 "http://127.0.0.1:4096/global/health" 2>/dev/null
+  elif [ -x "$FILES_DIR/server/ld-musl-aarch64.so.1" ] && [ -f "$FILES_DIR/server/opencode" ]; then
+    S="$FILES_DIR/server"
+    BUN_BE_BUN=1 "$S/ld-musl-aarch64.so.1" --library-path "$S" "$S/opencode" -e \
+      'fetch("http://127.0.0.1:4096/global/health",{signal:AbortSignal.timeout(1500)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' 2>/dev/null
   else
     return 1
   fi
@@ -32,9 +36,9 @@ echo "== opencode-maintenance (days=$DAYS) =="
 if [ -f "$DB" ]; then
   if command -v sqlite3 >/dev/null 2>&1; then
     sqlite3 "$DB" "PRAGMA wal_checkpoint(TRUNCATE);" 2>&1 | head -1
-  elif [ -x "$FILES_DIR/server/opencode" ]; then
+  elif [ -x "$FILES_DIR/server/ld-musl-aarch64.so.1" ] && [ -f "$FILES_DIR/server/opencode" ]; then
     S="$FILES_DIR/server"
-    MDB="$DB" LD_LIBRARY_PATH="$S" BUN_BE_BUN=1 "$S/ld-musl-aarch64.so.1" "$S/opencode" -e \
+    MDB="$DB" BUN_BE_BUN=1 "$S/ld-musl-aarch64.so.1" --library-path "$S" "$S/opencode" -e \
       'const {Database}=require("bun:sqlite");const db=new Database(process.env.MDB);db.run("PRAGMA wal_checkpoint(TRUNCATE)");console.log("checkpoint ok");db.close()' 2>&1 | head -3
   else
     echo "checkpoint: skipped (no sqlite3, no embedded runtime)"
@@ -90,9 +94,9 @@ if [ "$VAC" = "vacuum" ]; then
   elif command -v sqlite3 >/dev/null 2>&1; then
     sqlite3 "$DB" "VACUUM;" 2>&1 | head -3
     echo "VACUUM done"
-  elif [ -x "$FILES_DIR/server/opencode" ]; then
+  elif [ -x "$FILES_DIR/server/ld-musl-aarch64.so.1" ] && [ -f "$FILES_DIR/server/opencode" ]; then
     S="$FILES_DIR/server"
-    MDB="$DB" LD_LIBRARY_PATH="$S" BUN_BE_BUN=1 "$S/ld-musl-aarch64.so.1" "$S/opencode" -e \
+    MDB="$DB" BUN_BE_BUN=1 "$S/ld-musl-aarch64.so.1" --library-path "$S" "$S/opencode" -e \
       'const {Database}=require("bun:sqlite");const db=new Database(process.env.MDB);db.run("VACUUM");console.log("VACUUM done");db.close()' 2>&1 | head -3
   else
     echo "VACUUM skipped: no sqlite3, no embedded runtime"

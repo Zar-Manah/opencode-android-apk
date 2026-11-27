@@ -107,7 +107,7 @@ public class MainActivity extends Activity {
                 if (files != null) {
                     Arrays.sort(files, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
                     for (File f : files) {
-                        if (f.isDirectory() && !f.getName().startsWith(".")) {
+                        if (isUsableProjectDir(f, dir)) {
                             JSONObject o = new JSONObject();
                             o.put("name", f.getName());
                             o.put("path", f.getAbsolutePath());
@@ -173,16 +173,10 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void openDeviceControl() {
-            startActivity(new Intent(MainActivity.this, WirelessPairActivity.class));
-        }
-
-        @JavascriptInterface
         public String getRuntimeStatus() {
             try {
                 return new JSONObject()
                     .put("factoryReady", OpenCodeService.factoryReady)
-                    .put("adbConnected", LocalAdbEngine.hasActiveSerial())
                     .put("progress", OpenCodeService.bootProgress)
                     .put("stage", OpenCodeService.bootStage)
                     .toString();
@@ -203,7 +197,7 @@ public class MainActivity extends Activity {
                 if (web != null) {
                     web.evaluateJavascript(
                         "window._ocOnProjectError && window._ocOnProjectError("
-                            + JSONObject.quote(msg != null ? msg : "Failed to open project") + ");",
+                            + JSONObject.quote(msg != null ? msg : getString(R.string.err_open_project)) + ");",
                         null);
                 }
             });
@@ -332,8 +326,7 @@ public class MainActivity extends Activity {
                     JSONArray arr = new JSONArray();
                     if (subFiles != null) {
                         for (File f : subFiles) {
-                            if (f.isDirectory() && !f.getName().startsWith(".")
-                                && !f.getName().equals("android-sdk") && !f.getName().equals("toolchain")) {
+                            if (isUsableProjectDir(f, workDir)) {
                                 JSONObject itm = new JSONObject();
                                 itm.put("name", f.getName());
                                 itm.put("path", f.getAbsolutePath());
@@ -575,14 +568,14 @@ public class MainActivity extends Activity {
         splashWrap.setPadding(sidePad, sidePad, sidePad, sidePad);
 
         ImageView icon = new ImageView(this);
-        icon.setImageResource(getResources().getIdentifier("ic_launcher", "mipmap", getPackageName()));
+        icon.setImageResource(R.mipmap.ic_launcher);
         int iconSize = (int) (96 * d);
         LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(iconSize, iconSize);
         iconLp.bottomMargin = (int) (20 * d);
         splashWrap.addView(icon, iconLp);
 
         TextView brand = new TextView(this);
-        brand.setText("OpenCode");
+        brand.setText(R.string.app_name);
         brand.setTextColor(Color.WHITE);
         brand.setTextSize(22);
         brand.setGravity(Gravity.CENTER);

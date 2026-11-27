@@ -36,11 +36,14 @@ public class ScreenCaptureService extends Service {
     private static final String TAG = "OpenCodeCap";
     private static final String EXTRA_CODE = "result_code";
     private static final String EXTRA_DATA = "result_data";
+    private static final String EXTRA_CONSENT_ID = "consent_id";
 
     private static volatile ScreenCaptureService instance;
     private static volatile CountDownLatch consentLatch;
     private static volatile boolean consentDenied;
     private static volatile boolean consentCompleted;
+    private static volatile long consentSeq;
+    private static volatile long activeConsentId;
     private static final Object CAP_LOCK = new Object();
 
     private MediaProjection projection;
@@ -70,11 +73,18 @@ public class ScreenCaptureService extends Service {
     }
 
     static void startWithConsent(Context ctx, int resultCode, Intent data) {
+        long reqId = activeConsentId;
+        if (reqId == 0L) {
+            consentDenied = true;
+            consentCompleted = true;
+            return;
+        }
         consentDenied = false;
         consentCompleted = true;
         Intent svc = new Intent(ctx, ScreenCaptureService.class);
         svc.putExtra(EXTRA_CODE, resultCode);
         svc.putExtra(EXTRA_DATA, data);
+        svc.putExtra(EXTRA_CONSENT_ID, reqId);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ctx.startForegroundService(svc);
         } else {
@@ -83,6 +93,7 @@ public class ScreenCaptureService extends Service {
     }
 
     static void onConsentDenied() {
+        activeConsentId = 0L;
         consentDenied = true;
         consentCompleted = true;
         CountDownLatch l = consentLatch;
@@ -107,16 +118,21 @@ public class ScreenCaptureService extends Service {
                 fresh = true;
                 consentDenied = false;
                 consentCompleted = false;
+                long reqId = ++consentSeq;
+                activeConsentId = reqId;
                 consentLatch = new CountDownLatch(1);
                 Intent ask = new Intent(ctx, ScreenCaptureActivity.class);
                 ask.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 ctx.startActivity(ask);
+                boolean signaled;
                 try {
-                    consentLatch.await(30, TimeUnit.SECONDS);
+                    signaled = consentLatch.await(60, TimeUnit.SECONDS);
                 } catch (InterruptedException ignored) {
+                    if (activeConsentId == reqId) activeConsentId = 0L;
                     return null;
                 }
-                if (consentDenied || !hasActiveProjection()) {
+                if (activeConsentId == reqId) activeConsentId = 0L;
+                if (!signaled || consentDenied || !hasActiveProjection()) {
                     return null;
                 }
             }
@@ -137,12 +153,6 @@ public class ScreenCaptureService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notif = buildCapNotification();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(3, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
-        } else {
-            startForeground(3, notif);
-        }
-
         if (intent == null || !intent.hasExtra(EXTRA_DATA)) {
             stopSelf();
             return START_NOT_STICKY;
@@ -152,10 +162,21 @@ public class ScreenCaptureService extends Service {
         Intent data = (Build.VERSION.SDK_INT >= 33)
             ? intent.getParcelableExtra(EXTRA_DATA, Intent.class)
             : intent.getParcelableExtra(EXTRA_DATA);
-        if (code != Activity.RESULT_OK || data == null) {
+        long reqId = intent.getLongExtra(EXTRA_CONSENT_ID, 0L);
+        if (code != Activity.RESULT_OK || data == null || reqId == 0L || reqId != activeConsentId) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForeground(3, notif);
+            }
             onConsentDenied();
+            stopForeground(true);
             stopSelf();
             return START_NOT_STICKY;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(3, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
+        } else {
+            startForeground(3, notif);
         }
 
         try {
@@ -164,6 +185,7 @@ public class ScreenCaptureService extends Service {
             projection = mpm.getMediaProjection(code, data);
             if (projection == null) {
                 onConsentDenied();
+                stopForeground(true);
                 stopSelf();
                 return START_NOT_STICKY;
             }
@@ -180,10 +202,11 @@ public class ScreenCaptureService extends Service {
             setupVirtualDisplay();
             CountDownLatch l = consentLatch;
             if (l != null) l.countDown();
-            return START_STICKY;
+            return START_NOT_STICKY;
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize MediaProjection", e);
             onConsentDenied();
+            stopForeground(true);
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -434,7 +457,7 @@ public class ScreenCaptureService extends Service {
             ? new Notification.Builder(this, ch) : new Notification.Builder(this);
         return b.setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.cap_notif_text))
-            .setSmallIcon(getResources().getIdentifier("ic_launcher", "mipmap", getPackageName()))
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .build();
     }

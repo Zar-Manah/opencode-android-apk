@@ -66,14 +66,16 @@ public class InstallResultReceiver extends BroadcastReceiver {
             NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             String ch = "install";
             if (nm != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                nm.createNotificationChannel(new NotificationChannel(ch, "OpenCode",
+                nm.createNotificationChannel(new NotificationChannel(ch, context.getString(R.string.app_name),
                     NotificationManager.IMPORTANCE_DEFAULT));
             }
             if (nm != null) {
                 Notification.Builder b = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                     ? new Notification.Builder(context, ch) : new Notification.Builder(context);
                 boolean ok = (status == PackageInstaller.STATUS_SUCCESS);
-                b.setContentTitle(ok ? "App installed successfully" : "Installation failed (" + status + ")")
+                b.setContentTitle(ok
+                        ? context.getString(R.string.install_notif_success)
+                        : context.getString(R.string.install_notif_failed, status))
                     .setContentText(msg == null ? (pkg == null ? "" : pkg) : msg)
                     .setSmallIcon(android.R.drawable.ic_dialog_info);
                 nm.notify(2, b.build());

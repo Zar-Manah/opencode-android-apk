@@ -58,7 +58,7 @@
       '[data-directory-path*="/."],[data-directory-path*="~/."],[data-directory-path*="server-home"],[data-directory-path*="android-sdk"],[data-directory-path*="toolchain"]{display:none!important;}' +
       '#oc-create-project-row:hover{background:rgba(255,255,255,0.08)!important;}' +
       '#oc-create-project-row:active{background:rgba(255,255,255,0.15)!important;}' +
-      'button,a,[role="button"],#oc-create-project-row,#oc-device-control-row{touch-action:manipulation!important;}' +
+      'button,a,[role="button"],#oc-create-project-row{touch-action:manipulation!important;}' +
       'div[role="dialog"],[data-slot="dialog-content"]{max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 24px)!important;overflow-y:auto!important;}' +
       'form[data-component="prompt-input-v2"]>div.flex.h-11,form[data-component="prompt-input"]>div.flex.h-11{height:auto!important;min-height:44px;padding-top:6px;padding-bottom:6px!important;}' +
       'form[data-component="prompt-input-v2"] div.min-w-0.flex-1,form[data-component="prompt-input"] div.min-w-0.flex-1{flex-wrap:wrap!important;row-gap:6px!important;}' +
@@ -414,85 +414,6 @@
   function enhanceSettingsDialog(dialog) {
     var bad = dialog.querySelector('#oc-create-project-row');
     if (bad) bad.remove();
-
-    var titleEl = dialog.querySelector('[data-slot="dialog-title"],h1,h2,header');
-    var dTitle = (titleEl ? titleEl.textContent : '').toLowerCase();
-    var isSettings = dTitle.indexOf('ajuste') !== -1 || dTitle.indexOf('setting') !== -1 || !!dialog.querySelector('[role="tablist"]');
-    if (isSettings && window.AndroidBridge && window.AndroidBridge.getRuntimeStatus) {
-      var st = {};
-      try { st = JSON.parse(window.AndroidBridge.getRuntimeStatus()); } catch (e) {}
-      var existingCtrl = document.getElementById('oc-device-control-row');
-      if (st.adbConnected) {
-        var es = isEsUi();
-        if (!existingCtrl) {
-          var ctrlRow = document.createElement('div');
-          ctrlRow.id = 'oc-device-control-row';
-          ctrlRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin:8px 12px;border-radius:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);';
-          ctrlRow.innerHTML = '<div style="min-width:0">' +
-            '<div style="color:#F9FAFB;font-size:13px;font-weight:600">' + (es ? 'Control táctil activo' : 'Touch & Device Control Active') + '</div>' +
-            '<div style="color:#9CA3AF;font-size:11px">' + (es ? 'ADB / Root conectado automáticamente' : 'ADB / Root connected automatically') + '</div>' +
-            '</div>' +
-            '<span style="color:#10B981;font-size:12px;font-weight:700;white-space:nowrap">ON</span>';
-          var anchor = dialog.querySelector('[role="tabpanel"]') || dialog.querySelector('.overflow-y-auto') || dialog;
-          anchor.insertAdjacentElement('afterbegin', ctrlRow);
-        }
-      } else if (existingCtrl) {
-        existingCtrl.remove();
-      }
-    }
-    var isEnabled = localStorage.getItem('opencode_auto_accept_permissions') === 'true';
-    var allControls = dialog.querySelectorAll('[role="switch"],input[type="checkbox"],button[data-state]');
-    for (var i = 0; i < allControls.length; i++) {
-      var ctrl = allControls[i];
-      var row = ctrl.closest('div,label,li') || ctrl.parentElement;
-      var text = (row ? row.textContent : '').toLowerCase();
-      var isPermRow = text.indexOf('permis') !== -1 || text.indexOf('aprobaci') !== -1 || text.indexOf('solicitud') !== -1 || text.indexOf('approval') !== -1;
-      if (isPermRow || ctrl.hasAttribute('disabled') || ctrl.getAttribute('aria-disabled') === 'true') {
-        ctrl.removeAttribute('disabled');
-        ctrl.removeAttribute('aria-disabled');
-        ctrl.removeAttribute('data-disabled');
-        if ('disabled' in ctrl) ctrl.disabled = false;
-        ctrl.style.opacity = '1';
-        ctrl.style.pointerEvents = 'auto';
-        ctrl.classList.remove('opacity-50', 'pointer-events-none', 'cursor-not-allowed');
-        if (row) {
-          row.style.opacity = '1';
-          row.style.pointerEvents = 'auto';
-          row.classList.remove('opacity-50', 'pointer-events-none', 'cursor-not-allowed');
-        }
-        if (isPermRow && isEnabled) {
-          ctrl.setAttribute('data-state', 'checked');
-          ctrl.setAttribute('aria-checked', 'true');
-        }
-        if (isPermRow && !ctrl._ocSwitchBound) {
-          ctrl._ocSwitchBound = true;
-          ctrl.addEventListener('click', function () {
-            var cur = this.getAttribute('data-state') || (this.getAttribute('aria-checked') === 'true' ? 'checked' : 'unchecked');
-            var next = cur === 'checked' ? 'unchecked' : 'checked';
-            this.setAttribute('data-state', next);
-            this.setAttribute('aria-checked', next === 'checked' ? 'true' : 'false');
-            localStorage.setItem('opencode_auto_accept_permissions', next === 'checked' ? 'true' : 'false');
-            window._ocAutoAcceptPermissions = (next === 'checked');
-          }, true);
-        }
-      }
-    }
-  }
-
-  function autoApprovePendingPermissions() {
-    var isEnabled = localStorage.getItem('opencode_auto_accept_permissions') === 'true' || window._ocAutoAcceptPermissions === true;
-    if (!isEnabled) return;
-    var btns = document.querySelectorAll('button');
-    for (var i = 0; i < btns.length; i++) {
-      var b = btns[i];
-      var t = (b.textContent || '').trim().toLowerCase();
-      if (t === 'permitir' || t === 'allow' || t === 'aprobar' || t === 'approve' || t === 'permitir siempre' || t === 'always allow' || t === 'once') {
-        var card = b.closest('[data-component="notification"],[data-kind="permission"],div[class*="permission"],div[class*="toast"]');
-        if (card || b.getAttribute('data-action') === 'allow' || b.getAttribute('data-action') === 'once') {
-          b.click();
-        }
-      }
-    }
   }
 
   function handleDialogs() {
@@ -526,7 +447,6 @@
     anchorSettingsAndHelp();
     renderSidebarProjects(forceProjects);
     handleDialogs();
-    autoApprovePendingPermissions();
     updateToolchainPill();
     checkFirstPaintReady();
   }
